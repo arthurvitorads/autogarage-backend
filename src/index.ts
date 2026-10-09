@@ -1,30 +1,44 @@
 
 import "dotenv/config";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "@prisma/client";
 
-const connectionString = process.env.DATABASE_URL;
+import Fastify from "fastify";
+import cors from "@fastify/cors";
+import helmet from "@fastify/helmet";
+import rateLimit from "@fastify/rate-limit";
 
-if (!connectionString) {
-  throw new Error("DATABASE_URL não foi definida no arquivo .env");
-}
+import { prisma } from "./prisma.js";
 
-const adapter = new PrismaPg({ connectionString });
-export const prisma = new PrismaClient({ adapter });
+import { authRoutes } from "./routes/auth.js";
+
+const app = Fastify({
+  logger: true,
+});
 
 async function main() {
-  const usuarios = await prisma.admUsuario.findMany({
-    take: 10,
+  await app.register(cors, {
+    origin: true,
   });
 
-  console.log(usuarios);
-}
+  await app.register(helmet);
 
-main()
-  .catch((error) => {
-    console.error(error);
-    process.exitCode = 1;
-  })
-  .finally(async () => {
+  await app.register(rateLimit, {
+    max: 100,
+    timeWindow: "1 minute",
+  });
+
+  await app.register(authRoutes);
+
+  app.addHook("onClose", async () => {
     await prisma.$disconnect();
   });
+
+  const port = Number(process.env.PORT ?? 3000);
+  const host = process.env.HOST ?? "0.0.0.0";
+
+  await app.listen({ port, host });
+}
+
+main().catch((error) => {
+  app.log.error(error);
+  process.exitCode = 1;
+});

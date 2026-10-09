@@ -3,7 +3,10 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "target": "ESNext",
-    "types": [],
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "types": ["node"],
+    "noEmit": false,
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
@@ -16,5 +19,7 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true
-  }
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "generated"]
 }
