@@ -1,0 +1,19 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model AdmUsuario {
+  cn_usuario      BigInt   @id @default(autoincrement()) @db.BigInt
+  ca_id_firebase  String   @unique
+  an_email        String?
+  an_nome         String?
+  bo_sts_reg      Boolean  @default(true)
+  dt_inc          DateTime @default(now()) @db.Timestamptz(6)
+  dt_alt          DateTime @default(now()) @db.Timestamptz(6)
+
+  @@map("adm_usuario")
+}
