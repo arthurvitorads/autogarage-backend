@@ -8,7 +8,7 @@ import rateLimit from "@fastify/rate-limit";
 
 import { prisma } from "./prisma.js";
 
-import { authRoutes } from "./routes/auth.js";
+import { authRoute, userRoute } from "./routes/user.route.js";
 
 const app = Fastify({
   logger: true,
@@ -26,7 +26,8 @@ async function main() {
     timeWindow: "1 minute",
   });
 
-  await app.register(authRoutes);
+  await app.register(authRoute);
+  await app.register(userRoute);
 
   app.addHook("onClose", async () => {
     await prisma.$disconnect();
