@@ -28,19 +28,14 @@ export async function authRoute(app: FastifyInstance) {
     }
 
     return {
-      autenticado: true,
-      usuario: {
         cn_usuario: usuario.cn_usuario.toString(),
         ca_id_firebase: usuario.ca_id_firebase,
         an_email: usuario.an_email,
         an_nome: usuario.an_nome,
-        bo_sts_reg: usuario.bo_sts_reg,
-      },
+        bo_sts_reg: usuario.bo_sts_reg
     };
   });
 }
-
-
 
 export async function userRoute(app: FastifyInstance) {
   apiGet(app, "/usuarios", async () => {
