@@ -1,4 +1,6 @@
 
+import type { Prisma } from "@prisma/client";
+
 import type { FastifyInstance } from "fastify";
 
 import { prisma } from "../prisma.js";
@@ -44,9 +46,16 @@ export async function userRoute(app: FastifyInstance) {
     const query = request.query as IPaginationQuery;
 
     const page = Number(query.page ?? 1);
-    const limit = Number(query.limit ?? 20);
+    const limit = Number(query.limit ?? 10);
+    const search = (query.search ?? "").trim();
 
-    if (!Number.isSafeInteger(page) || !Number.isSafeInteger(limit) || page < 1 || limit < 1 || limit > 100) {
+    if (
+      !Number.isSafeInteger(page) ||
+      !Number.isSafeInteger(limit) ||
+      page < 1 ||
+      limit < 1 ||
+      limit > 100
+    ) {
       throw new ApiError(400, "Paginação inválida.");
     }
 
@@ -56,8 +65,28 @@ export async function userRoute(app: FastifyInstance) {
       throw new ApiError(400, "Página inválida.");
     }
 
+    const where: Prisma.AdmUsuarioWhereInput = search
+      ? {
+          OR: [
+            {
+              an_nome: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              an_email: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+          ],
+        }
+      : {};
+
     const [usuarios, total] = await prisma.$transaction([
       prisma.admUsuario.findMany({
+        where,
         skip,
         take: limit,
         select: {
@@ -73,7 +102,10 @@ export async function userRoute(app: FastifyInstance) {
           cn_usuario: "asc",
         },
       }),
-      prisma.admUsuario.count(),
+
+      prisma.admUsuario.count({
+        where,
+      }),
     ]);
 
     return {
