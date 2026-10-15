@@ -1,47 +1,18 @@
+import 'dotenv/config';
+import { Application } from './app.js';
+import { prisma } from './prisma.js';
+import { firebaseAuth } from './firebase-admin.js';
+import { UserRepository } from './repositories/user.repository.js';
+import { FirebaseService } from './services/firebase.service.js';
+import { AuthService } from './services/auth.service.js';
+import { UserService } from './services/user.service.js';
 
-import "dotenv/config";
-
-import Fastify from "fastify";
-import cors from "@fastify/cors";
-import helmet from "@fastify/helmet";
-import rateLimit from "@fastify/rate-limit";
-
-import { prisma } from "./prisma.js";
-
-import { authRoute, userRoute } from "./routes/user.route.js";
-
-const app = Fastify({
-  logger: true,
-});
-
-async function main() {
-  await app.register(cors, {
-    origin: true,
-  });
-
-  await app.register(helmet);
-
-  await app.register(rateLimit, {
-    max: 100,
-    timeWindow: "1 minute",
-  });
-
-  await app.register(authRoute);
-  await app.register(userRoute);
-
-  
-
-  app.addHook("onClose", async () => {
-    await prisma.$disconnect();
-  });
-
-  const port = Number(process.env.PORT ?? 3000);
-  const host = process.env.HOST ?? "0.0.0.0";
-
-  await app.listen({ port, host });
-}
-
-main().catch((error) => {
+const repository = new UserRepository(prisma);
+const firebase = new FirebaseService(firebaseAuth);
+const application = new Application(new AuthService(repository, firebase), new UserService(repository, firebase));
+const app = application.server;
+app.addHook('onClose', async () => { await prisma.$disconnect(); });
+app.listen({ port: Number(process.env.PORT ?? 3000), host: process.env.HOST ?? '0.0.0.0' }).catch((error) => {
   app.log.error(error);
   process.exitCode = 1;
 });

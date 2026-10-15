@@ -1,14 +1,9 @@
+import type { FastifyRequest } from 'fastify';
+import type { AuthService } from '../services/auth.service.js';
 
-import type { FastifyReply, FastifyRequest } from "fastify";
-import { validateToken } from "../stores/auth.store.js";
-
-export async function authMiddleware(
-  request: FastifyRequest,
-  reply: FastifyReply
-): Promise<void> {
-  const decodedToken = await validateToken(request, reply);
-
-  if (!decodedToken) return;
-
-  request.firebaseUser = decodedToken;
+export class AuthMiddleware {
+  constructor(private readonly service: AuthService) {}
+  handle = async (request: FastifyRequest): Promise<void> => {
+    request.firebaseUser = await this.service.authenticate(request.headers.authorization);
+  };
 }
