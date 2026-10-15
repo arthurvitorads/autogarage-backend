@@ -29,6 +29,8 @@ async function main() {
   await app.register(authRoute);
   await app.register(userRoute);
 
+  
+
   app.addHook("onClose", async () => {
     await prisma.$disconnect();
   });
