@@ -1,52 +1,63 @@
-import { ApiError } from '../interfaces/error.js';
-import type { ICreateUser, IUpdateUser } from '../interfaces/user.js';
+import { ApiError } from '../interfaces/error.js'
+import type { ICreateUser, IUpdateUser } from '../interfaces/user.js'
 
 export class UserValidator {
   static id(id: unknown): bigint {
     if (typeof id !== 'string' || !/^[1-9]\d*$/.test(id) || BigInt(id) > 9223372036854775807n) {
-      throw new ApiError(400, 'Identificador do usuário inválido.');
+      throw new ApiError(400, 'Identificador do usuário inválido.')
     }
-    return BigInt(id);
+
+    return BigInt(id)
   }
 
   static update(body: unknown): IUpdateUser {
     if (!body || typeof body !== 'object' || Array.isArray(body)) {
-      throw new ApiError(400, 'Dados do usuário inválidos.');
+      throw new ApiError(400, 'Dados do usuário inválidos.')
     }
-    const data = body as Record<string, unknown>;
+
+    const data = body as Record<string, unknown>
+
     if (Object.keys(data).some(key => key !== 'an_nome' && key !== 'bo_sts_reg')) {
-      throw new ApiError(400, 'Somente nome e status podem ser alterados.');
+      throw new ApiError(400, 'Somente nome e status podem ser alterados.')
     }
+
     if (typeof data.an_nome !== 'string' || !data.an_nome.trim()) {
-      throw new ApiError(400, 'Informe o nome.');
+      throw new ApiError(400, 'Informe o nome.')
     }
-    if (typeof data.bo_sts_reg !== 'boolean') throw new ApiError(400, 'Status inválido.');
-    return { an_nome: data.an_nome.trim(), bo_sts_reg: data.bo_sts_reg };
+
+    if (typeof data.bo_sts_reg !== 'boolean') throw new ApiError(400, 'Status inválido.')
+     
+    
+    return { 
+      an_nome: data.an_nome.trim(), 
+      bo_sts_reg: data.bo_sts_reg 
+    }
   }
 
   static create(body: unknown): ICreateUser {
     if (!body || typeof body !== 'object' || Array.isArray(body)) {
-      throw new ApiError(400, 'Dados do usuário inválidos.');
+      throw new ApiError(400, 'Dados do usuário inválidos.')
     }
-    const data = body as Record<string, unknown>;
+    const data = body as Record<string, unknown>
     if (typeof data.an_nome !== 'string' || !data.an_nome.trim()) {
-      throw new ApiError(400, 'Informe o nome.');
+      throw new ApiError(400, 'Informe o nome.')
     }
     if (typeof data.an_email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.an_email.trim())) {
-      throw new ApiError(400, 'Informe um e-mail válido.');
+      throw new ApiError(400, 'Informe um e-mail válido.')
     }
     if (typeof data.ca_senha !== 'string' || data.ca_senha.length < 6 || data.ca_senha.length > 128) {
-      throw new ApiError(400, 'A senha deve conter entre 6 e 128 caracteres.');
+      throw new ApiError(400, 'A senha deve conter entre 6 e 128 caracteres.')
     }
     if (data.bo_sts_reg !== undefined && typeof data.bo_sts_reg !== 'boolean') {
-      throw new ApiError(400, 'Status inválido.');
+      throw new ApiError(400, 'Status inválido.')
     }
+    
     return {
       an_nome: data.an_nome.trim(),
       an_email: data.an_email.trim().toLowerCase(),
       ca_senha: data.ca_senha,
       bo_sts_reg: data.bo_sts_reg ?? true,
-    };
+    }
   }
 
 }

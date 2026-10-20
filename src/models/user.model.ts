@@ -2,7 +2,11 @@ import type { AdmUsuario } from '@prisma/client';
 
 export class UserModel {
   static toResponse(user: AdmUsuario) {
-    return { ...user, cn_usuario: user.cn_usuario.toString() };
+    return { 
+      ...user, 
+      cn_usuario: 
+      user.cn_usuario.toString() 
+    };
   }
 
   static toSession(user: AdmUsuario) {

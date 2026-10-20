@@ -7,3 +7,9 @@ create table adm_usuario (
   dt_inc          timestamptz not null default now(),
   dt_alt          timestamptz not null default now()
 );
+
+create index if not exists idx_adm_usuario_1
+    on adm_usuario (an_email);
+
+create index if not exists idx_adm_usuario_2
+    on adm_usuario (dt_inc);
