@@ -10,7 +10,10 @@ export class UserRepository {
   }
 
   findByFirebaseId(uid: string) {
-    return this.db.admUsuario.findUnique({ where: { ca_id_firebase: uid } })
+    return this.db.admUsuario.findUnique({
+      where: { ca_id_firebase: uid },
+      include: { perfil: { select: { an_descr: true } } },
+    })
   }
 
   findByEmail(email: string) {
@@ -61,6 +64,7 @@ export class UserRepository {
       this.db.admUsuario.findMany({
         where, skip: (page - 1) * limit, take: limit,
         orderBy: { cn_usuario: 'asc' },
+        include: { perfil: { select: { an_descr: true } } },
       }),
 
       this.db.admUsuario.count({ where }),
