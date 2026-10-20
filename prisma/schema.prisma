@@ -11,10 +11,14 @@ model AdmUsuario {
   ca_id_firebase  String   @unique
   an_email        String
   an_nome         String
+  cn_perfil       BigInt   @db.BigInt
   bo_sts_reg      Boolean  @default(true)
   dt_inc          DateTime @default(now()) @db.Timestamptz(6)
   dt_alt          DateTime @default(now()) @db.Timestamptz(6)
 
+  perfil AdmPerfil? @relation(fields: [cn_perfil], references: [cn_perfil], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([cn_perfil], map: "idx_adm_usuario_3")
   @@map("adm_usuario")
 }
 
@@ -24,6 +28,8 @@ model AdmPerfil {
   bo_sts_reg      Boolean  @default(true)
   dt_inc          DateTime @default(now()) @db.Timestamptz(6)
   dt_alt          DateTime @default(now()) @db.Timestamptz(6)
+
+  usuarios AdmUsuario[]
 
   @@map("adm_perfil")
 }

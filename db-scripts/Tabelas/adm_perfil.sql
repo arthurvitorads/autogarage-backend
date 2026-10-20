@@ -7,4 +7,4 @@ create table adm_perfil (
 );
 
 create index if not exists idx_adm_perfil_2
-    on adm_perfil (dt_inc);
+  on adm_perfil (dt_inc);

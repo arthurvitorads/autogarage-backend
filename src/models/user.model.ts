@@ -4,8 +4,8 @@ export class UserModel {
   static toResponse(user: AdmUsuario) {
     return { 
       ...user, 
-      cn_usuario: 
-      user.cn_usuario.toString() 
+      cn_usuario: user.cn_usuario.toString(),
+      cn_perfil: user.cn_perfil?.toString(),
     };
   }
 

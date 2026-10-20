@@ -3,6 +3,7 @@ create table adm_usuario (
   ca_id_firebase  text not null unique,
   an_email        text,
   an_nome         text,
+  cn_perfil       bigint,
   bo_sts_reg      boolean not null default true,
   dt_inc          timestamptz not null default now(),
   dt_alt          timestamptz not null default now()
@@ -13,3 +14,13 @@ create index if not exists idx_adm_usuario_1
 
 create index if not exists idx_adm_usuario_2
     on adm_usuario (dt_inc);
+
+create index if not exists idx_adm_usuario_3
+  on adm_usuario (cn_perfil);
+
+alter table adm_usuario
+  add constraint fk_adm_usuario_1
+  foreign key (cn_perfil)
+  references adm_perfil (cn_perfil)
+  on delete restrict
+  on update cascade;
