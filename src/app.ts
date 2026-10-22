@@ -49,7 +49,7 @@ export class Application {
     this.server.register(helmet)
 
     //rateLimit
-    this.server.register(rateLimit, { max: 8, timeWindow: 30_000 })
+    this.server.register(rateLimit, { max: 20, timeWindow: 30_000 })
 
     this.server.register(async (server) => {
       const router = new ApiRouter(server, new AuthMiddleware(auth))

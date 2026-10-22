@@ -6,6 +6,7 @@ export class PerfilRoutes {
 
   register(router: ApiRouter) {
     router.get('/perfil', this.controller.list)
+    router.get('/paramPerfil', this.controller.paramList)
     router.post('/perfil', this.controller.create)
     router.post('/perfil/:id', this.controller.update, 200)
   }

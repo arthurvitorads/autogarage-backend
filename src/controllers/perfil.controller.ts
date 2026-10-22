@@ -15,6 +15,10 @@ export class PerfilController {
     return this.service.list(page, limit, search)
   }
 
+  paramList = () => {
+    return this.service.paramList()
+  }
+
   create = (request: FastifyRequest) => {
     this.service.create(request.body as IManutPerfil)
   }

@@ -11,14 +11,22 @@ export class PerfilService {
   ) {}
 
   async list(page: number, limit: number, search: string) {
-    const { users, total } = await this.perfil.list(page, limit, search)
+    const { perfil, total } = await this.perfil.list(page, limit, search)
     
     return {
-      perfil: users.map(PerfilModel.toResponse),
+      perfil: perfil.map(PerfilModel.toResponse),
       pagination: {
         page, limit, total, totalPages: Math.ceil(total / limit),
         hasNextPage: page * limit < total, hasPreviousPage: page > 1,
       },
+    }
+  }
+
+  async paramList() {
+    const perfil = await this.perfil.paramList()
+
+    return {
+      perfil: perfil.map(PerfilModel.toParamResponse),
     }
   }
 

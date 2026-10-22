@@ -38,7 +38,7 @@ export class PerfilRepository {
         }
       ]} : {}
 
-    const [users, total] = await this.db.$transaction([
+    const [perfil, total] = await this.db.$transaction([
       this.db.admPerfil.findMany({
         where, skip: (page - 1) * limit, take: limit,
         orderBy: { cn_perfil: 'asc' },
@@ -47,9 +47,16 @@ export class PerfilRepository {
       this.db.admPerfil.count({ where }),
     ])
 
-    return { users, total }
+    return { perfil, total }
+  }
+
+
+  async paramList() {
+    return this.db.admPerfil.findMany({
+      orderBy: { cn_perfil: 'asc' },
+    })
   }
 }
 
 export type IPerfilRepository = Pick<PerfilRepository,
-  'findById' | 'create' | 'update' | 'list'>
+  'findById' | 'create' | 'update' | 'list' | 'paramList'>
