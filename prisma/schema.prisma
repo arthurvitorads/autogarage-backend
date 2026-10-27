@@ -34,3 +34,58 @@ model AdmPerfil {
   @@map("adm_perfil")
 }
 
+model OrdStatusOs {
+  cn_status_os     BigInt   @id @default(autoincrement()) @db.BigInt
+  an_descr        String
+  bo_sts_reg      Boolean  @default(true)
+  dt_inc          DateTime @default(now()) @db.Timestamptz(6)
+  dt_alt          DateTime @default(now()) @db.Timestamptz(6)
+
+  @@map("ord_status_os")
+}
+
+model CadPessoa {
+  cn_pessoa              BigInt   @id @default(autoincrement()) @db.BigInt
+  ca_tipo                String   @db.Text
+  an_nome                String?  @db.Text
+  ca_cpf                 String?  @db.Text
+  ca_cnpj                String?  @db.Text
+  an_razao_social        String?  @db.Text
+  an_nome_fantasia        String?  @db.Text
+  an_email               String?  @db.Text
+  an_telefone            String?  @db.Text
+  bo_categ_cliente       Boolean  @default(true)
+  bo_categ_func          Boolean  @default(false)
+  an_cargo               String?  @db.Text
+  nm_comissao_percentual Decimal? @default(0) @db.Decimal(5, 2)
+  bo_sts_reg             Boolean  @default(true)
+  dt_inc                 DateTime @default(now()) @db.Timestamptz(6)
+  dt_alt                 DateTime @default(now()) @db.Timestamptz(6)
+
+  endereco CadEndereco?
+
+  @@index([dt_inc], map: "idx_cad_pessoa_3")
+  @@map("cad_pessoa")
+}
+
+model CadEndereco {
+  cn_endereco    BigInt   @id @default(autoincrement()) @db.BigInt
+  cn_pessoa      BigInt   @unique(map: "idx_cad_endereco_1") @db.BigInt
+  ca_cep         String?  @db.Text
+  an_logradouro  String?  @db.Text
+  an_numero      String?  @db.Text
+  an_complemento String?  @db.Text
+  an_bairro      String?  @db.Text
+  an_cidade      String?  @db.Text
+  ca_uf          String?  @db.Text
+  bo_sts_reg     Boolean  @default(true)
+  dt_inc         DateTime @default(now()) @db.Timestamptz(6)
+  dt_alt         DateTime @default(now()) @db.Timestamptz(6)
+
+  pessoa CadPessoa @relation(fields: [cn_pessoa], references: [cn_pessoa], onDelete: Restrict, onUpdate: Cascade, map: "fk_cad_endereco_1")
+
+  @@index([dt_inc], map: "idx_cad_endereco_2")
+  @@map("cad_endereco")
+}
+
+

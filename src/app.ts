@@ -6,6 +6,8 @@ import rateLimit from '@fastify/rate-limit'
 import { AuthController } from './controllers/auth.controller.js'
 import { UserController } from './controllers/user.controller.js'
 import { PerfilController } from './controllers/perfil.controller.js'
+import { OrderController } from './controllers/order.controller.js'
+import { PersonController } from './controllers/person.controller.js'
 
 import { AuthMiddleware } from './middlewares/auth.middleware.js'
 
@@ -16,10 +18,14 @@ import { ApiRouter } from './http/api-router.js'
 import { AuthRoutes } from './routes/auth.route.js'
 import { UserRoutes } from './routes/user.route.js'
 import { PerfilRoutes } from './routes/perfil.route.js'
+import { OrderRoutes } from './routes/order.route.js'
+import { PersonRoutes } from './routes/person.route.js'
 
 import type { AuthService } from './services/auth.service.js'
 import type { UserService } from './services/user.service.js'
 import type { PerfilService } from './services/perfil.service.js'
+import type { OrderService } from './services/order.service.js'
+import type { PersonService } from './services/person.service.js'
 
 export class Application {
   readonly server
@@ -28,6 +34,8 @@ export class Application {
     auth: AuthService,
     users: UserService,
     perfil: PerfilService,
+    order: OrderService,
+    person: PersonService,
     logger = true
   ) {
     this.server = Fastify({ logger })
@@ -57,6 +65,8 @@ export class Application {
       new AuthRoutes(new AuthController(auth)).register(router)
       new UserRoutes(new UserController(users)).register(router)
       new PerfilRoutes(new PerfilController(perfil)).register(router)
+      new OrderRoutes(new OrderController(order)).register(router)
+      new PersonRoutes(new PersonController(person)).register(router)
     })
   }
 }
