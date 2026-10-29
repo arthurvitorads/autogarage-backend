@@ -11,7 +11,7 @@ model AdmUsuario {
   ca_id_firebase  String   @unique
   an_email        String
   an_nome         String
-  cn_perfil       BigInt   @db.BigInt
+  cn_perfil       BigInt?  @db.BigInt
   bo_sts_reg      Boolean  @default(true)
   dt_inc          DateTime @default(now()) @db.Timestamptz(6)
   dt_alt          DateTime @default(now()) @db.Timestamptz(6)
@@ -37,9 +37,13 @@ model AdmPerfil {
 model OrdStatusOs {
   cn_status_os     BigInt   @id @default(autoincrement()) @db.BigInt
   an_descr        String
+  ca_cor          String   @default("#64748b")
+  bo_padrao       Boolean  @default(false)
   bo_sts_reg      Boolean  @default(true)
   dt_inc          DateTime @default(now()) @db.Timestamptz(6)
   dt_alt          DateTime @default(now()) @db.Timestamptz(6)
+
+  ordens OrdOrdemServico[]
 
   @@map("ord_status_os")
 }
@@ -63,9 +67,101 @@ model CadPessoa {
   dt_alt                 DateTime @default(now()) @db.Timestamptz(6)
 
   endereco CadEndereco?
+  ordens OrdOrdemServico[]
 
   @@index([dt_inc], map: "idx_cad_pessoa_3")
   @@map("cad_pessoa")
+}
+
+model CadProduto {
+  cn_produto     Int      @id @default(autoincrement())
+  an_nome        String
+  an_referencia  String   @default("")
+  an_categoria   String   @default("")
+  an_marca       String   @default("")
+  ca_unidade     String
+  vl_custo       Decimal  @db.Decimal(11, 2)
+  vl_venda       Decimal  @db.Decimal(11, 2)
+  qt_estoque     Decimal  @db.Decimal(12, 3)
+  qt_estoque_min Decimal  @db.Decimal(12, 3)
+  an_obs         String   @default("")
+  bo_sts_reg     Boolean  @default(true)
+  dt_inc         DateTime @default(now()) @db.Timestamptz(6)
+  dt_alt         DateTime @default(now()) @db.Timestamptz(6)
+  itens OrdItemOs[]
+  @@map("cad_produto")
+}
+
+model CadServico {
+  cn_servico       Int      @id @default(autoincrement())
+  an_nome          String
+  an_categoria     String   @default("")
+  vl_preco         Decimal  @db.Decimal(11, 2)
+  nu_tempo_estimado Int?
+  an_obs           String   @default("")
+  bo_sts_reg       Boolean  @default(true)
+  dt_inc           DateTime @default(now()) @db.Timestamptz(6)
+  dt_alt           DateTime @default(now()) @db.Timestamptz(6)
+  itens OrdItemOs[]
+  @@map("cad_servico")
+}
+
+model CadAuxiliar {
+  cn_cadastro Int      @id @default(autoincrement())
+  ca_tipo     String
+  an_descr    String
+  ca_sigla    String   @default("")
+  dt_inc      DateTime @default(now()) @db.Timestamptz(6)
+  dt_alt      DateTime @default(now()) @db.Timestamptz(6)
+  @@map("cad_auxiliar")
+}
+
+model OrdOrdemServico {
+  cn_ordem_servico BigInt   @id @default(autoincrement()) @db.BigInt
+  nu_numero        Int      @unique @default(autoincrement())
+  cn_pessoa        BigInt   @db.BigInt
+  cn_status_os     BigInt   @db.BigInt
+  dt_entrada       DateTime @db.Timestamptz(6)
+  dt_previsao      DateTime? @db.Timestamptz(6)
+  an_responsavel   String   @default("")
+  an_placa         String
+  an_marca         String
+  an_modelo        String
+  nu_ano           Int?
+  an_cor           String   @default("")
+  qt_quilometragem Int?
+  an_solicitacao   String   @default("")
+  an_obs           String   @default("")
+  dt_inc           DateTime @default(now()) @db.Timestamptz(6)
+  dt_alt           DateTime @default(now()) @db.Timestamptz(6)
+  pessoa CadPessoa @relation(fields: [cn_pessoa], references: [cn_pessoa], onDelete: Restrict, onUpdate: Cascade, map: "fk_ord_ordem_servico_1")
+  status OrdStatusOs @relation(fields: [cn_status_os], references: [cn_status_os], onDelete: Restrict, onUpdate: Cascade, map: "fk_ord_ordem_servico_2")
+  itens OrdItemOs[]
+  @@index([cn_pessoa], map: "idx_ord_ordem_servico_1")
+  @@index([cn_status_os], map: "idx_ord_ordem_servico_2")
+  @@map("ord_ordem_servico")
+}
+
+model OrdItemOs {
+  cn_item          BigInt   @id @default(autoincrement()) @db.BigInt
+  cn_ordem_servico BigInt   @db.BigInt
+  ca_tipo          String
+  cn_produto       Int?
+  cn_servico       Int?
+  an_descr         String
+  ca_unidade       String   @default("")
+  qt_quantidade    Decimal  @db.Decimal(12, 3)
+  vl_unitario      Decimal  @db.Decimal(11, 2)
+  vl_total         Decimal  @db.Decimal(20, 2)
+  dt_inc           DateTime @default(now()) @db.Timestamptz(6)
+  dt_alt           DateTime @default(now()) @db.Timestamptz(6)
+  ordem OrdOrdemServico @relation(fields: [cn_ordem_servico], references: [cn_ordem_servico], onDelete: Restrict, onUpdate: Cascade, map: "fk_ord_item_os_1")
+  produto CadProduto? @relation(fields: [cn_produto], references: [cn_produto], onDelete: Restrict, onUpdate: Cascade, map: "fk_ord_item_os_2")
+  servico CadServico? @relation(fields: [cn_servico], references: [cn_servico], onDelete: Restrict, onUpdate: Cascade, map: "fk_ord_item_os_3")
+  @@index([cn_ordem_servico], map: "idx_ord_item_os_1")
+  @@index([cn_produto], map: "idx_ord_item_os_2")
+  @@index([cn_servico], map: "idx_ord_item_os_3")
+  @@map("ord_item_os")
 }
 
 model CadEndereco {

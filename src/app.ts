@@ -26,6 +26,9 @@ import type { UserService } from './services/user.service.js'
 import type { PerfilService } from './services/perfil.service.js'
 import type { OrderService } from './services/order.service.js'
 import type { PersonService } from './services/person.service.js'
+import type { CatalogService } from './services/catalog.service.js'
+import { CatalogController } from './controllers/catalog.controller.js'
+import { CatalogRoutes } from './routes/catalog.route.js'
 
 export class Application {
   readonly server
@@ -36,12 +39,11 @@ export class Application {
     perfil: PerfilService,
     order: OrderService,
     person: PersonService,
+    catalog: CatalogService,
     logger = true
   ) {
     this.server = Fastify({ logger })
-
     this.server.setErrorHandler(ApiResponse.error)
-
     this.server.setNotFoundHandler((_request, reply) => {
       return reply.code(404).send(
         {
@@ -51,14 +53,11 @@ export class Application {
         }
       )
     })
-
     this.server.register(cors, { origin: true })
-
     this.server.register(helmet)
 
     //rateLimit
-    this.server.register(rateLimit, { max: 20, timeWindow: 30_000 })
-
+    this.server.register(rateLimit, { max: 80, timeWindow: 30_000 })
     this.server.register(async (server) => {
       const router = new ApiRouter(server, new AuthMiddleware(auth))
 
@@ -67,6 +66,7 @@ export class Application {
       new PerfilRoutes(new PerfilController(perfil)).register(router)
       new OrderRoutes(new OrderController(order)).register(router)
       new PersonRoutes(new PersonController(person)).register(router)
+      new CatalogRoutes(new CatalogController(catalog)).register(router)
     })
   }
 }

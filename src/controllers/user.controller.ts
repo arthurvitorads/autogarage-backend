@@ -13,11 +13,13 @@ export class UserController {
   }
 
   create = (request: FastifyRequest) => {
-    this.service.create(UserValidator.create(request.body), request.log)
+    return this.service.create(UserValidator.create(request.body), request.log)
   }
 
   update = (request: FastifyRequest) => {
-    const id = UserValidator.id((request.params as { id: string }).id)
+    const id = UserValidator.id((request.params as {
+      id: string
+    }).id)
 
     return this.service.update(id, UserValidator.update(request.body), request.log)
   }

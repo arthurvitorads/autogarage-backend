@@ -18,11 +18,11 @@ export class UserRepository {
 
   findByEmail(email: string) {
     return this.db.admUsuario.findFirst({
-      where: { 
-        an_email: { 
-          equals: email, 
-          mode: 'insensitive' 
-        } 
+      where: {
+        an_email: {
+          equals: email,
+          mode: 'insensitive'
+        }
       },
     })
   }
@@ -34,6 +34,7 @@ export class UserRepository {
         an_nome: values.an_nome,
         an_email: values.an_email,
         bo_sts_reg: values.bo_sts_reg,
+        cn_perfil: values.cn_perfil ?? null,
       },
     })
   }
@@ -41,10 +42,11 @@ export class UserRepository {
   update(id: bigint, values: IUpdateUser) {
     return this.db.admUsuario.update({
       where: { cn_usuario: id },
-      data: { 
-        an_nome: values.an_nome, 
-        bo_sts_reg: values.bo_sts_reg, 
-        dt_alt: new Date() 
+      data: {
+        an_nome: values.an_nome,
+        bo_sts_reg: values.bo_sts_reg,
+        ...(values.cn_perfil === undefined ? {} : { cn_perfil: values.cn_perfil }),
+        dt_alt: new Date()
       },
     })
   }
@@ -52,21 +54,22 @@ export class UserRepository {
   async list(page: number, limit: number, search: string) {
     const where: Prisma.AdmUsuarioWhereInput = search ? {
       OR: [
-        { 
-          an_nome: { contains: search, mode: 'insensitive' } 
+        {
+          an_nome: { contains: search, mode: 'insensitive' }
         },
-        { 
-          an_email: { contains: search, mode: 'insensitive' } 
+        {
+          an_email: { contains: search, mode: 'insensitive' }
         },
-      ]} : {}
-
+      ]
+} : {}
     const [users, total] = await this.db.$transaction([
       this.db.admUsuario.findMany({
-        where, skip: (page - 1) * limit, take: limit,
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
         orderBy: { cn_usuario: 'asc' },
         include: { perfil: { select: { an_descr: true } } },
       }),
-
       this.db.admUsuario.count({ where }),
     ])
 

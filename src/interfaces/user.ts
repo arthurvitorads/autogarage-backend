@@ -1,6 +1,7 @@
 export interface IUpdateUser {
   an_nome: string
   bo_sts_reg: boolean
+  cn_perfil?: bigint | null
 }
 
 export interface ICreateUser {
@@ -8,5 +9,5 @@ export interface ICreateUser {
   an_email: string
   ca_senha: string
   bo_sts_reg: boolean
+  cn_perfil?: bigint | null
 }
-

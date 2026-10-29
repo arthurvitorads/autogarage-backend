@@ -1,5 +1,6 @@
 import { ApiError } from '../interfaces/error.js'
 import type { ICreateUser, IUpdateUser } from '../interfaces/user.js'
+import { DataValidator } from './data.validator.js'
 
 export class UserValidator {
   static id(id: unknown): bigint {
@@ -17,20 +18,23 @@ export class UserValidator {
 
     const data = body as Record<string, unknown>
 
-    if (Object.keys(data).some(key => key !== 'an_nome' && key !== 'bo_sts_reg')) {
-      throw new ApiError(400, 'Somente nome e status podem ser alterados.')
+    if (Object.keys(data).some(key => !['an_nome', 'bo_sts_reg', 'cn_perfil'].includes(key))) {
+      throw new ApiError(400, 'Somente nome, perfil e status podem ser alterados.')
     }
 
     if (typeof data.an_nome !== 'string' || !data.an_nome.trim()) {
       throw new ApiError(400, 'Informe o nome.')
     }
 
-    if (typeof data.bo_sts_reg !== 'boolean') throw new ApiError(400, 'Status inválido.')
-     
-    
-    return { 
-      an_nome: data.an_nome.trim(), 
-      bo_sts_reg: data.bo_sts_reg 
+    if (typeof data.bo_sts_reg !== 'boolean')
+      throw new ApiError(400, 'Status inválido.')
+
+    return {
+      an_nome: data.an_nome.trim(),
+      bo_sts_reg: data.bo_sts_reg,
+      ...(data.cn_perfil === undefined ? {} : {
+        cn_perfil: data.cn_perfil === null || data.cn_perfil === '' ? null : DataValidator.id(data.cn_perfil),
+      }),
     }
   }
 
@@ -51,13 +55,13 @@ export class UserValidator {
     if (data.bo_sts_reg !== undefined && typeof data.bo_sts_reg !== 'boolean') {
       throw new ApiError(400, 'Status inválido.')
     }
-    
+
     return {
       an_nome: data.an_nome.trim(),
       an_email: data.an_email.trim().toLowerCase(),
       ca_senha: data.ca_senha,
       bo_sts_reg: data.bo_sts_reg ?? true,
+      cn_perfil: data.cn_perfil == null || data.cn_perfil === '' ? null : DataValidator.id(data.cn_perfil),
     }
   }
-
 }

@@ -1,21 +1,18 @@
-import type { CadPessoa } from "@prisma/client";
+import type { CadEndereco, CadPessoa } from '@prisma/client'
 
 export class PersonModel {
-  static toResponse(pessoa: CadPessoa) {
-    return { 
-      ...pessoa, 
-      cn_pessoa: 
-      pessoa.cn_pessoa.toString() 
-    };
-  }
-
-  static toParamResponse(pessoa: {
-    cn_pessoa: bigint
-    an_descr: string
+  static toResponse(pessoa: CadPessoa & {
+    endereco?: CadEndereco | null
   }) {
     return {
-      id: pessoa.cn_pessoa.toString(),
-      an_descr: pessoa.an_descr,
+      ...pessoa,
+      cn_pessoa: pessoa.cn_pessoa.toString(),
+      nm_comissao_percentual: Number(pessoa.nm_comissao_percentual ?? 0),
+      endereco: pessoa.endereco ? {
+        ...pessoa.endereco,
+        cn_endereco: pessoa.endereco.cn_endereco.toString(),
+        cn_pessoa: pessoa.endereco.cn_pessoa.toString(),
+      } : null,
     }
   }
 }

@@ -18,20 +18,23 @@ import { UserService } from './services/user.service.js'
 import { PerfilService } from './services/perfil.service.js'
 import { OrderService } from './services/order.service.js'
 import { PersonService } from './services/person.service.js'
+import { CatalogRepository } from './repositories/catalog.repository.js'
+import { CatalogService } from './services/catalog.service.js'
 
-const usrRepository  = new UserRepository(prisma)
-const pflRepository  = new PerfilRepository(prisma)
-const ordRepository  = new OrderRepository(prisma)
+const usrRepository = new UserRepository(prisma)
+const pflRepository = new PerfilRepository(prisma)
+const ordRepository = new OrderRepository(prisma)
 const prsRespository = new PersonRepository(prisma)
 
 const firebase = new FirebaseService(firebaseAuth)
 
 const application = new Application(
-  new AuthService   (usrRepository, firebase),
-  new UserService   (usrRepository, firebase),
-  new PerfilService (pflRepository),
-  new OrderService  (ordRepository),
-  new PersonService (prsRespository)
+  new AuthService(usrRepository, firebase),
+  new UserService(usrRepository, firebase),
+  new PerfilService(pflRepository),
+  new OrderService(ordRepository),
+  new PersonService(prsRespository),
+  new CatalogService(new CatalogRepository(prisma))
 )
 
 const app = application.server

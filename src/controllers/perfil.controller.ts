@@ -1,7 +1,7 @@
 import type { FastifyRequest } from 'fastify'
 
 import type { PerfilService } from '../services/perfil.service.js'
-import type { IManutPerfil } from '../interfaces/perfil.js'
+import { PerfilValidator } from '../validators/perfil.validator.js'
 
 import { UserValidator } from '../validators/user.validator.js'
 import { PaginationValidator } from '../validators/pagination.validator.js'
@@ -20,12 +20,14 @@ export class PerfilController {
   }
 
   create = (request: FastifyRequest) => {
-    this.service.create(request.body as IManutPerfil)
+    return this.service.create(PerfilValidator.parse(request.body))
   }
 
   update = (request: FastifyRequest) => {
-    const id = UserValidator.id((request.params as { id: string }).id)
+    const id = UserValidator.id((request.params as {
+      id: string
+    }).id)
 
-    return this.service.update(id, request.body as IManutPerfil)
+    return this.service.update(id, PerfilValidator.parse(request.body))
   }
 }

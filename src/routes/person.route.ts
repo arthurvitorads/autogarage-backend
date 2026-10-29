@@ -7,6 +7,8 @@ export class PersonRoutes {
 
   register(router: ApiRouter) {
     router.get('/pessoa', this.controller.list)
-    // router.post('/pessoa/:id', this.controller.update, 200)
+    router.get('/paramPessoa', this.controller.paramList)
+    router.post('/pessoa', this.controller.create)
+    router.post('/pessoa/:id', this.controller.update, 200)
   }
 }
