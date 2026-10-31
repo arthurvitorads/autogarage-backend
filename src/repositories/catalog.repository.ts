@@ -1,4 +1,5 @@
-import type { Prisma, PrismaClient } from '@prisma/client'
+import { Prisma, type PrismaClient } from '@prisma/client'
+import { ApiError } from '../interfaces/error.js'
 import type { IManutProduto, IManutServico, IManutCadastroAuxiliar } from '../interfaces/catalog.js'
 
 export class CatalogRepository {
@@ -9,6 +10,7 @@ export class CatalogRepository {
       OR: [
         { an_nome: { contains: search, mode: 'insensitive' } },
         { an_referencia: { contains: search, mode: 'insensitive' } },
+        ...(/^\d+$/.test(search) && Number(search) <= 2147483647 ? [{ cn_produto: Number(search) }] : []),
       ]
     } : {}
     const [produtos, total] = await this.db.$transaction([
@@ -33,7 +35,7 @@ export class CatalogRepository {
   }
 
   async services(page: number, limit: number, search: string) {
-    const where: Prisma.CadServicoWhereInput = search ? { an_nome: { contains: search, mode: 'insensitive' } } : {}
+    const where: Prisma.CadServicoWhereInput = search ? { OR: [{ an_nome: { contains: search, mode: 'insensitive' } }, ...(/^\d+$/.test(search) && Number(search) <= 2147483647 ? [{ cn_servico: Number(search) }] : [])] } : {}
     const [servicos, total] = await this.db.$transaction([
       this.db.cadServico.findMany({
         where,
@@ -64,7 +66,23 @@ export class CatalogRepository {
   }
 
   updateAuxiliary(id: number, values: IManutCadastroAuxiliar) {
-    return this.db.cadAuxiliar.update({ where: { cn_cadastro: id }, data: { ...values, dt_alt: new Date() } })
+    return this.db.$transaction(async transaction => {
+      const anterior = await transaction.cadAuxiliar.findUnique({ where: { cn_cadastro: id } })
+      if (!anterior)
+        throw new ApiError(404, 'Cadastro não encontrado.')
+      if (anterior.ca_tipo !== values.ca_tipo)
+        throw new ApiError(400, 'O tipo do cadastro não pode ser alterado.')
+      const cadastro = await transaction.cadAuxiliar.update({ where: { cn_cadastro: id }, data: { ...values, dt_alt: new Date() } })
+      if (values.ca_tipo === 'CATEGORIA_PRODUTO')
+        await transaction.cadProduto.updateMany({ where: { an_categoria: anterior.an_descr }, data: { an_categoria: values.an_descr, dt_alt: new Date() } })
+      else if (values.ca_tipo === 'CATEGORIA_SERVICO')
+        await transaction.cadServico.updateMany({ where: { an_categoria: anterior.an_descr }, data: { an_categoria: values.an_descr, dt_alt: new Date() } })
+      else if (values.ca_tipo === 'MARCA')
+        await transaction.cadProduto.updateMany({ where: { an_marca: anterior.an_descr }, data: { an_marca: values.an_descr, dt_alt: new Date() } })
+      else
+        await transaction.cadProduto.updateMany({ where: { ca_unidade: anterior.ca_sigla }, data: { ca_unidade: values.ca_sigla, dt_alt: new Date() } })
+      return cadastro
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
   }
 }
 

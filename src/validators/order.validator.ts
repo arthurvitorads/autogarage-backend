@@ -1,9 +1,32 @@
-import type { IManutOrder, IManutStatusOrder, IManutItemOrder } from '../interfaces/order.js'
+import type { IManutOrder, IManutClassificacaoOrder, IManutItemOrder, IFiltroOrder, IMovimentoOrder, TStatusOrder } from '../interfaces/order.js'
 import { ApiError } from '../interfaces/error.js'
 import { DataValidator as Data } from './data.validator.js'
 
 export class OrderValidator {
-  static status(body: unknown): IManutStatusOrder {
+  static filters(query: unknown): IFiltroOrder {
+    const data = Data.object(query ?? {})
+    const status = data.status ? Data.text(data.status, 'o status') as TStatusOrder : undefined
+    if (status && !['ABERTO', 'EM_ANDAMENTO', 'FINALIZADO', 'CANCELADO'].includes(status))
+      throw new ApiError(400, 'Status inválido.')
+    const classificacao = data.classificacao ? Data.id(data.classificacao) : undefined
+    const inicio = data.inicio ? new Date(Data.text(data.inicio, 'a data inicial')) : undefined
+    const fim = data.fim ? new Date(Data.text(data.fim, 'a data final')) : undefined
+    if ((inicio && !Number.isFinite(inicio.getTime())) || (fim && !Number.isFinite(fim.getTime())) || (inicio && fim && inicio > fim))
+      throw new ApiError(400, 'Período inválido.')
+    return { ...(status ? { status } : {}), ...(classificacao ? { classificacao } : {}), ...(inicio ? { inicio } : {}), ...(fim ? { fim } : {}) }
+  }
+
+  static movement(body: unknown): IMovimentoOrder {
+    const data = Data.object(body)
+    if (data.acao !== 'INICIAR' && data.acao !== 'FINALIZAR' && data.acao !== 'CANCELAR')
+      throw new ApiError(400, 'Ação inválida.')
+    return {
+      acao: data.acao,
+      an_motivo_cancelamento: data.acao === 'CANCELAR' ? Data.text(data.an_motivo_cancelamento, 'o motivo do cancelamento') : '',
+    }
+  }
+
+  static classification(body: unknown): IManutClassificacaoOrder {
     const data = Data.object(body)
     const cor = Data.text(data.ca_cor, 'a cor')
     if (!/^#[A-Fa-f0-9]{6}$/.test(cor))
@@ -27,7 +50,7 @@ export class OrderValidator {
       throw new ApiError(400, 'Placa inválida.')
     return {
       cn_pessoa: Data.id(data.cn_pessoa),
-      cn_status_os: Data.id(data.cn_status),
+      cn_classificacao_os: Data.id(data.cn_classificacao),
       dt_entrada: entrada,
       dt_previsao: previsao,
       an_responsavel: Data.text(data.an_responsavel, 'o responsável', false),

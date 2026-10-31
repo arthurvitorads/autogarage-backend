@@ -1,25 +1,25 @@
 import { OrderModel } from '../models/order.model.js'
 import { ApiError } from '../interfaces/error.js'
 import type { IOrderRepository } from '../repositories/order.repository.js'
-import type { IManutOrder, IManutStatusOrder, IManutItemOrder } from '../interfaces/order.js'
+import type { IManutOrder, IManutClassificacaoOrder, IManutItemOrder, IFiltroOrder, IMovimentoOrder } from '../interfaces/order.js'
 
 export class OrderService {
   constructor(private readonly order: IOrderRepository) {}
 
-  async statusList() {
-    return { order: (await this.order.statusList()).map(OrderModel.toParamResponse) }
+  async classificationList() {
+    return { order: (await this.order.classificationList()).map(OrderModel.toParamResponse) }
   }
 
-  async statuses() {
-    return { status: (await this.order.statusList()).map(OrderModel.status) }
+  async classifications() {
+    return { classificacoes: (await this.order.classificationList()).map(OrderModel.classification) }
   }
 
-  async saveStatus(id: bigint | null, values: IManutStatusOrder) {
-    return OrderModel.status(await this.order.saveStatus(id, values))
+  async saveClassification(id: bigint | null, values: IManutClassificacaoOrder) {
+    return OrderModel.classification(await this.order.saveClassification(id, values))
   }
 
-  async list(page: number, limit: number, search: string) {
-    const { ordens, total } = await this.order.list(page, limit, search)
+  async list(page: number, limit: number, search: string, filters: IFiltroOrder = {}) {
+    const { ordens, total } = await this.order.list(page, limit, search, filters)
     return {
       ordens: ordens.map(OrderModel.toResponse),
       pagination: {
@@ -38,6 +38,10 @@ export class OrderService {
     if (!ordem)
       throw new ApiError(404, 'Ordem de serviço não encontrada.')
     return OrderModel.toResponse(ordem)
+  }
+
+  async move(id: bigint, values: IMovimentoOrder) {
+    return OrderModel.toResponse(await this.order.move(id, values))
   }
 
   async saveOrder(id: bigint | null, values: IManutOrder) {

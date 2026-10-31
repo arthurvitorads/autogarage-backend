@@ -5,6 +5,7 @@ import { PersonValidator } from '../src/validators/person.validator.js'
 import { CatalogValidator } from '../src/validators/catalog.validator.js'
 import { OrderValidator } from '../src/validators/order.validator.js'
 import { DataValidator } from '../src/validators/data.validator.js'
+import { UserValidator } from '../src/validators/user.validator.js'
 import { UserController } from '../src/controllers/user.controller.js'
 import { UserService } from '../src/services/user.service.js'
 import { PersonController } from '../src/controllers/person.controller.js'
@@ -34,7 +35,7 @@ const pessoa = {
 }
 const produto = { an_nome: 'Filtro', an_referencia: '', an_categoria: '', an_marca: '', ca_unidade: 'UN',
   vl_custo: 10, vl_venda: 20, qt_estoque: 5, qt_estoque_min: 1, an_obs: '', bo_sts_reg: true }
-const ordem = { cn_pessoa: '1', cn_status: '1', dt_entrada: '2026-10-28T10:00:00-03:00', dt_previsao: null,
+const ordem = { cn_pessoa: '1', cn_classificacao: '1', dt_entrada: '2026-10-28T10:00:00-03:00', dt_previsao: null,
   an_responsavel: '', an_solicitacao: '', an_obs: '',
   veiculo: { an_placa: 'abc-1234', an_marca: 'Marca', an_modelo: 'Modelo', nu_ano: null, an_cor: '', qt_quilometragem: null } }
 const item = { ca_tipo: 'PRODUTO' as const, cn_produto: 1, cn_servico: null, qt_quantidade: 2, vl_unitario: 19.95 }
@@ -82,7 +83,7 @@ function database() {
   let itens: Array<Record<string, unknown>> = []
   const transaction = {
     ordOrdemServico: {
-      findUnique: async () => ({ cn_ordem_servico: 1n }),
+      findUnique: async () => ({ cn_ordem_servico: 1n, ca_status: 'ABERTO' }),
       update: async () => ({}),
     },
     cadProduto: {
@@ -217,5 +218,144 @@ test('rotas: catálogo e ordens validam payload e preservam respostas persistida
     assert.equal(saved.json().dados.cn_ordem_servico, '9')
     assert.equal(saved.json().dados.veiculo.an_placa, 'ABC1234')
     assert.equal(saved.json().dados.an_cliente, 'Cliente')
+  } finally { await app.close() }
+})
+
+
+test('ordens: valida filtros de status e período', () => {
+  const filters = OrderValidator.filters({ status: 'EM_ANDAMENTO', classificacao: '2', inicio: '2026-10-30T03:00:00Z', fim: '2026-10-31T02:59:59Z' })
+  assert.equal(filters.status, 'EM_ANDAMENTO')
+  assert.equal(filters.classificacao, 2n)
+  assert.equal(filters.inicio?.toISOString(), '2026-10-30T03:00:00.000Z')
+  assert.throws(() => OrderValidator.filters({ status: 'invalido' }))
+  assert.throws(() => OrderValidator.filters({ inicio: 'invalido' }))
+  assert.throws(() => OrderValidator.filters({ inicio: '2026-10-31', fim: '2026-10-30' }))
+})
+
+test('ordens: aplica os mesmos filtros na listagem paginada e na contagem', async () => {
+  let list: any
+  let count: any
+  const db = {
+    ordOrdemServico: {
+      findMany: (args: any) => { list = args; return Promise.resolve([]) },
+      count: (args: any) => { count = args; return Promise.resolve(0) },
+    },
+    $transaction: (requests: any[]) => Promise.all(requests),
+  } as unknown as PrismaClient
+  const inicio = new Date('2026-10-30T03:00:00Z')
+  const fim = new Date('2026-10-31T02:59:59Z')
+  await new OrderRepository(db).list(2, 20, 'ABC', { status: 'EM_ANDAMENTO', classificacao: 2n, inicio, fim })
+  assert.deepEqual(list.where, count.where)
+  assert.equal(list.where.ca_status, 'EM_ANDAMENTO')
+  assert.equal(list.where.cn_classificacao_os, 2n)
+  assert.deepEqual(list.where.dt_entrada, { gte: inicio, lte: fim })
+  assert.equal(list.skip, 20)
+  assert.equal(list.take, 20)
+})
+
+
+test('usuários: respeita o limite de caracteres do backend', () => {
+  const values = { an_nome: 'a'.repeat(4000), bo_sts_reg: true }
+  assert.equal(UserValidator.update(values).an_nome.length, 4000)
+  assert.throws(() => UserValidator.update({ ...values, an_nome: 'a'.repeat(4001) }))
+  assert.throws(() => UserValidator.create({ ...values, an_email: 'a'.repeat(4000) + '@teste.com', ca_senha: '123456' }))
+})
+
+
+function workflowDatabase(initialStatus = 'ABERTO') {
+  let row = {
+    ...OrderValidator.order(ordem), cn_ordem_servico: 1n, nu_numero: 1,
+    ca_status: initialStatus, an_motivo_cancelamento: '',
+    dt_inicio: null, dt_finalizacao: null, dt_cancelamento: null,
+    pessoa: { an_nome: 'Cliente' }, itens: [],
+  } as Record<string, any>
+  let writes = 0
+  const transaction = {
+    ordOrdemServico: {
+      findUnique: async () => ({ ...row }),
+      create: async ({ data }: any) => { row = { ...row, ...data }; writes++; return row },
+      update: async ({ data }: any) => { row = { ...row, ...data }; writes++; return row },
+    },
+    cadPessoa: { findUnique: async () => ({ bo_sts_reg: true, bo_categ_cliente: true }) },
+    ordClassificacaoOs: { findUnique: async () => ({ bo_sts_reg: true }) },
+  }
+  const db = {
+    $transaction: async (callback: (tx: typeof transaction) => Promise<unknown>, options: any) => {
+      assert.equal(options.isolationLevel, Prisma.TransactionIsolationLevel.Serializable)
+      return callback(transaction)
+    },
+  } as unknown as PrismaClient
+  return { repository: new OrderRepository(db), row: () => row, writes: () => writes }
+}
+
+test('fluxo: nova OS sempre abre em Aberto e mantém classificação independente', async () => {
+  const db = workflowDatabase()
+  const values = OrderValidator.order({ ...ordem, ca_status: 'FINALIZADO', an_motivo_cancelamento: 'Não deve ser aceito' })
+  await db.repository.saveOrder(null, values)
+  assert.equal(db.row().ca_status, 'ABERTO')
+  assert.equal(db.row().cn_classificacao_os, 1n)
+  assert.equal(db.row().an_motivo_cancelamento, '')
+})
+
+test('fluxo: somente Aberto inicia, somente Em andamento finaliza e encerramento bloqueia todas as alterações', async () => {
+  const db = workflowDatabase()
+  const move = (acao: 'INICIAR' | 'FINALIZAR' | 'CANCELAR') => db.repository.move(1n, { acao, an_motivo_cancelamento: 'Motivo' })
+  await assert.rejects(() => move('FINALIZAR'), /Ação indisponível/)
+  await move('INICIAR')
+  assert.equal(db.row().ca_status, 'EM_ANDAMENTO')
+  assert.ok(db.row().dt_inicio instanceof Date)
+  await assert.rejects(() => move('INICIAR'), /Ação indisponível/)
+  await move('FINALIZAR')
+  assert.equal(db.row().ca_status, 'FINALIZADO')
+  assert.ok(db.row().dt_finalizacao instanceof Date)
+  const writes = db.writes()
+  await assert.rejects(() => move('CANCELAR'), /apenas consulta/)
+  await assert.rejects(() => move('INICIAR'), /apenas consulta/)
+  await assert.rejects(() => db.repository.saveOrder(1n, OrderValidator.order(ordem)), /apenas consulta/)
+  await assert.rejects(() => db.repository.saveItem(1n, null, item), /apenas consulta/)
+  await assert.rejects(() => db.repository.saveItem(1n, 1n, item), /apenas consulta/)
+  await assert.rejects(() => db.repository.removeItem(1n, 1n), /apenas consulta/)
+  assert.equal(db.writes(), writes)
+})
+
+test('fluxo: cancelamento exige motivo e não permite reabrir ou alterar itens', async () => {
+  assert.throws(() => OrderValidator.movement({ acao: 'CANCELAR', an_motivo_cancelamento: '  ' }), /motivo/)
+  assert.throws(() => OrderValidator.movement({ acao: 'CANCELAR', an_motivo_cancelamento: 'a'.repeat(4001) }), /motivo/)
+  assert.throws(() => OrderValidator.movement({ acao: 'REABRIR' }), /Ação inválida/)
+  for (const status of ['ABERTO', 'EM_ANDAMENTO']) {
+    const db = workflowDatabase(status)
+    await db.repository.move(1n, OrderValidator.movement({ acao: 'CANCELAR', an_motivo_cancelamento: '  Cliente desistiu  ' }))
+    assert.equal(db.row().ca_status, 'CANCELADO')
+    assert.equal(db.row().an_motivo_cancelamento, 'Cliente desistiu')
+    assert.ok(db.row().dt_cancelamento instanceof Date)
+    await assert.rejects(() => db.repository.saveOrder(1n, OrderValidator.order(ordem)), /apenas consulta/)
+    await assert.rejects(() => db.repository.saveItem(1n, null, item), /apenas consulta/)
+    await assert.rejects(() => db.repository.saveItem(1n, 1n, item), /apenas consulta/)
+    await assert.rejects(() => db.repository.removeItem(1n, 1n), /apenas consulta/)
+    await assert.rejects(() => db.repository.move(1n, { acao: 'INICIAR', an_motivo_cancelamento: '' }), /apenas consulta/)
+    assert.equal(db.writes(), 1)
+  }
+})
+
+test('rotas: movimentação persiste motivo e rejeita edições de OS cancelada por API', async () => {
+  const app = Fastify()
+  app.setErrorHandler(ApiResponse.error)
+  const auth = { authenticate: async () => ({ uid: 'teste' }) } as unknown as AuthService
+  const router = new ApiRouter(app, new AuthMiddleware(auth))
+  const db = workflowDatabase()
+  new OrderRoutes(new OrderController(new OrderService(db.repository))).register(router)
+  try {
+    const invalid = await app.inject({ method: 'POST', url: '/ordensServico/1/movimentar', payload: { acao: 'CANCELAR', an_motivo_cancelamento: '' } })
+    assert.equal(invalid.statusCode, 400)
+    assert.equal(db.writes(), 0)
+    const canceled = await app.inject({ method: 'POST', url: '/ordensServico/1/movimentar', payload: { acao: 'CANCELAR', an_motivo_cancelamento: 'Cliente desistiu' } })
+    assert.equal(canceled.statusCode, 200)
+    assert.equal(canceled.json().dados.ca_status, 'CANCELADO')
+    assert.equal(canceled.json().dados.an_motivo_cancelamento, 'Cliente desistiu')
+    const edited = await app.inject({ method: 'POST', url: '/ordensServico/1', payload: ordem })
+    assert.equal(edited.statusCode, 409)
+    const removed = await app.inject({ method: 'POST', url: '/ordensServico/1/itens/1/remover', payload: {} })
+    assert.equal(removed.statusCode, 409)
+    assert.equal(db.writes(), 1)
   } finally { await app.close() }
 })

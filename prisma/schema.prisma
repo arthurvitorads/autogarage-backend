@@ -34,8 +34,8 @@ model AdmPerfil {
   @@map("adm_perfil")
 }
 
-model OrdStatusOs {
-  cn_status_os     BigInt   @id @default(autoincrement()) @db.BigInt
+model OrdClassificacaoOs {
+  cn_classificacao_os BigInt   @id @default(autoincrement()) @db.BigInt @map("cn_status_os")
   an_descr        String
   ca_cor          String   @default("#64748b")
   bo_padrao       Boolean  @default(false)
@@ -120,7 +120,12 @@ model OrdOrdemServico {
   cn_ordem_servico BigInt   @id @default(autoincrement()) @db.BigInt
   nu_numero        Int      @unique @default(autoincrement())
   cn_pessoa        BigInt   @db.BigInt
-  cn_status_os     BigInt   @db.BigInt
+  cn_classificacao_os BigInt   @db.BigInt @map("cn_status_os")
+  ca_status       String   @default("ABERTO")
+  an_motivo_cancelamento String @default("")
+  dt_inicio       DateTime? @db.Timestamptz(6)
+  dt_finalizacao  DateTime? @db.Timestamptz(6)
+  dt_cancelamento DateTime? @db.Timestamptz(6)
   dt_entrada       DateTime @db.Timestamptz(6)
   dt_previsao      DateTime? @db.Timestamptz(6)
   an_responsavel   String   @default("")
@@ -135,10 +140,10 @@ model OrdOrdemServico {
   dt_inc           DateTime @default(now()) @db.Timestamptz(6)
   dt_alt           DateTime @default(now()) @db.Timestamptz(6)
   pessoa CadPessoa @relation(fields: [cn_pessoa], references: [cn_pessoa], onDelete: Restrict, onUpdate: Cascade, map: "fk_ord_ordem_servico_1")
-  status OrdStatusOs @relation(fields: [cn_status_os], references: [cn_status_os], onDelete: Restrict, onUpdate: Cascade, map: "fk_ord_ordem_servico_2")
+  classificacao OrdClassificacaoOs @relation(fields: [cn_classificacao_os], references: [cn_classificacao_os], onDelete: Restrict, onUpdate: Cascade, map: "fk_ord_ordem_servico_2")
   itens OrdItemOs[]
   @@index([cn_pessoa], map: "idx_ord_ordem_servico_1")
-  @@index([cn_status_os], map: "idx_ord_ordem_servico_2")
+  @@index([cn_classificacao_os], map: "idx_ord_ordem_servico_2")
   @@map("ord_ordem_servico")
 }
 

@@ -7,20 +7,22 @@ import { PaginationValidator } from '../validators/pagination.validator.js'
 export class OrderController {
   constructor(private readonly service: OrderService) {}
 
-  statusList = () => this.service.statusList()
+  classificationList = () => this.service.classificationList()
 
-  statuses = () => this.service.statuses()
+  classifications = () => this.service.classifications()
 
-  createStatus = (request: FastifyRequest) => this.service.saveStatus(null, OrderValidator.status(request.body))
+  createClassification = (request: FastifyRequest) => this.service.saveClassification(null, OrderValidator.classification(request.body))
 
-  updateStatus = (request: FastifyRequest) => this.service.saveStatus(this.id(request), OrderValidator.status(request.body))
+  updateClassification = (request: FastifyRequest) => this.service.saveClassification(this.id(request), OrderValidator.classification(request.body))
 
   list = (request: FastifyRequest) => {
     const { page, limit, search } = PaginationValidator.parse(request.query)
-    return this.service.list(page, limit, search)
+    return this.service.list(page, limit, search, OrderValidator.filters(request.query))
   }
 
   findById = (request: FastifyRequest) => this.service.findById(this.id(request))
+
+  move = (request: FastifyRequest) => this.service.move(this.id(request), OrderValidator.movement(request.body))
 
   create = (request: FastifyRequest) => this.service.saveOrder(null, OrderValidator.order(request.body))
 

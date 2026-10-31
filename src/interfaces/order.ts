@@ -1,4 +1,19 @@
-export interface IManutStatusOrder {
+export type TStatusOrder = 'ABERTO' | 'EM_ANDAMENTO' | 'FINALIZADO' | 'CANCELADO'
+export type TAcaoOrder = 'INICIAR' | 'FINALIZAR' | 'CANCELAR'
+
+export interface IFiltroOrder {
+  status?: TStatusOrder
+  classificacao?: bigint
+  inicio?: Date
+  fim?: Date
+}
+
+export interface IMovimentoOrder {
+  acao: TAcaoOrder
+  an_motivo_cancelamento: string
+}
+
+export interface IManutClassificacaoOrder {
   an_descr: string
   ca_cor: string
   bo_padrao: boolean
@@ -6,7 +21,7 @@ export interface IManutStatusOrder {
 
 export interface IManutOrder {
   cn_pessoa: bigint
-  cn_status_os: bigint
+  cn_classificacao_os: bigint
   dt_entrada: Date
   dt_previsao: Date | null
   an_responsavel: string

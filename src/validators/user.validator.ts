@@ -30,7 +30,7 @@ export class UserValidator {
       throw new ApiError(400, 'Status inválido.')
 
     return {
-      an_nome: data.an_nome.trim(),
+      an_nome: DataValidator.text(data.an_nome, 'o nome'),
       bo_sts_reg: data.bo_sts_reg,
       ...(data.cn_perfil === undefined ? {} : {
         cn_perfil: data.cn_perfil === null || data.cn_perfil === '' ? null : DataValidator.id(data.cn_perfil),
@@ -57,8 +57,8 @@ export class UserValidator {
     }
 
     return {
-      an_nome: data.an_nome.trim(),
-      an_email: data.an_email.trim().toLowerCase(),
+      an_nome: DataValidator.text(data.an_nome, 'o nome'),
+      an_email: DataValidator.text(data.an_email, 'o e-mail').toLowerCase(),
       ca_senha: data.ca_senha,
       bo_sts_reg: data.bo_sts_reg ?? true,
       cn_perfil: data.cn_perfil == null || data.cn_perfil === '' ? null : DataValidator.id(data.cn_perfil),
