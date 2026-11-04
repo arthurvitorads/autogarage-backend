@@ -13,3 +13,6 @@ begin;
 \ir Tabelas/ord_ordem_servico.sql
 \ir Tabelas/ord_item_os.sql
 commit;
+
+\ir Atualizacoes/002_fluxo_ordem_servico.sql
+\ir atualizar_tempo_faturamento.sql

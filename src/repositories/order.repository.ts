@@ -1,6 +1,7 @@
 import { Prisma, type PrismaClient } from '@prisma/client'
 import type { IManutOrder, IManutClassificacaoOrder, IManutItemOrder, IFiltroOrder, IMovimentoOrder } from '../interfaces/order.js'
 import { ApiError } from '../interfaces/error.js'
+import { OrderTimeRepository } from './order-time.repository.js'
 
 export class OrderRepository {
   constructor(private readonly db: PrismaClient) {}
@@ -39,7 +40,7 @@ export class OrderRepository {
     const [ordens, total] = await this.db.$transaction([
       this.db.ordOrdemServico.findMany({
         where,
-        include: { pessoa: true, itens: { orderBy: { cn_item: 'asc' } } },
+        include: { venda: { select: { cn_venda: true } }, pessoa: true, itens: { orderBy: { cn_item: 'asc' } } },
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { nu_numero: 'desc' }
@@ -52,7 +53,7 @@ export class OrderRepository {
   findById(id: bigint) {
     return this.db.ordOrdemServico.findUnique({
       where: { cn_ordem_servico: id },
-      include: { pessoa: true, itens: { orderBy: { cn_item: 'asc' } } }
+      include: { venda: { select: { cn_venda: true } }, pessoa: true, itens: { orderBy: { cn_item: 'asc' } } }
     })
   }
 
@@ -72,11 +73,18 @@ export class OrderRepository {
         (values.acao === 'FINALIZAR' && ordem.ca_status !== 'EM_ANDAMENTO'))
         throw new ApiError(409, 'Ação indisponível para o status atual da ordem.')
       const agora = new Date()
+      const servicos = await transaction.ordItemOs.findMany({ where: { cn_ordem_servico: id, ca_tipo: 'SERVICO' } })
+      for (const item of servicos) {
+        if (values.acao === 'INICIAR' && item.ca_status_servico === 'PENDENTE')
+          await OrderTimeRepository.start(transaction, item, agora)
+        if (values.acao !== 'INICIAR' && item.ca_status_servico !== 'FINALIZADO')
+          await OrderTimeRepository.stop(transaction, item, agora, values.acao)
+      }
       const data = values.acao === 'INICIAR' ? { ca_status: 'EM_ANDAMENTO', dt_inicio: agora }
         : values.acao === 'FINALIZAR' ? { ca_status: 'FINALIZADO', dt_finalizacao: agora }
         : { ca_status: 'CANCELADO', dt_cancelamento: agora, an_motivo_cancelamento: values.an_motivo_cancelamento }
       return transaction.ordOrdemServico.update({
-        where: { cn_ordem_servico: id }, data: { ...data, dt_alt: agora }, include: { pessoa: true, itens: true },
+        where: { cn_ordem_servico: id }, data: { ...data, dt_alt: agora }, include: { venda: { select: { cn_venda: true } }, pessoa: true, itens: true },
       })
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
   }
@@ -92,21 +100,24 @@ export class OrderRepository {
       if (!status?.bo_sts_reg)
         throw new ApiError(400, 'Selecione uma classificação ativa.')
       return id === null
-        ? transaction.ordOrdemServico.create({ data: { ...values, ca_status: 'ABERTO' }, include: { pessoa: true, itens: true } })
+        ? transaction.ordOrdemServico.create({ data: { ...values, ca_status: 'ABERTO' }, include: { venda: { select: { cn_venda: true } }, pessoa: true, itens: true } })
         : transaction.ordOrdemServico.update({
           where: { cn_ordem_servico: id },
           data: { ...values, dt_alt: new Date() },
-          include: { pessoa: true, itens: true }
+          include: { venda: { select: { cn_venda: true } }, pessoa: true, itens: true }
         })
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
   }
 
   saveItem(ordemId: bigint, itemId: bigint | null, values: IManutItemOrder) {
     return this.db.$transaction(async transaction => {
-      await this.editable(transaction, ordemId)
+      const ordem = await this.editable(transaction, ordemId)
       const existing = itemId === null ? null : await transaction.ordItemOs.findFirst({ where: { cn_item: itemId, cn_ordem_servico: ordemId } })
       if (itemId !== null && !existing)
         throw new ApiError(404, 'Item não encontrado nesta ordem.')
+      if (existing && existing.ca_tipo === 'SERVICO' && existing.ca_status_servico !== 'PENDENTE' &&
+        (values.ca_tipo !== 'SERVICO' || values.cn_servico !== existing.cn_servico))
+        throw new ApiError(409, 'Não é possível substituir um serviço cuja contagem já foi iniciada.')
       // Restore the previous movement before applying the new one; rollback covers both.
       if (existing?.cn_produto != null)
         await transaction.cadProduto.update({
@@ -149,6 +160,8 @@ export class OrderRepository {
       if (soma._sum.vl_total?.mul(100).greaterThan(Number.MAX_SAFE_INTEGER))
         throw new ApiError(400, 'Total da ordem excede o limite permitido.')
       await transaction.ordOrdemServico.update({ where: { cn_ordem_servico: ordemId }, data: { dt_alt: new Date() } })
+      if (item.ca_tipo === 'SERVICO' && item.ca_status_servico === 'PENDENTE' && ordem.ca_status === 'EM_ANDAMENTO')
+        return OrderTimeRepository.start(transaction, item, new Date())
       return item
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
   }
@@ -159,6 +172,8 @@ export class OrderRepository {
       const item = await transaction.ordItemOs.findFirst({ where: { cn_item: itemId, cn_ordem_servico: ordemId } })
       if (!item)
         throw new ApiError(404, 'Item não encontrado nesta ordem.')
+      if (item.ca_tipo === 'SERVICO' && item.ca_status_servico !== 'PENDENTE')
+        throw new ApiError(409, 'Serviço com contagem iniciada não pode ser removido.')
       if (item.cn_produto !== null)
         await transaction.cadProduto.update({
           where: { cn_produto: item.cn_produto },
@@ -169,6 +184,22 @@ export class OrderRepository {
       return { cn_item: itemId.toString() }
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
   }
+  timeItem(ordemId: bigint, itemId: bigint, acao: 'INICIAR' | 'PAUSAR' | 'FINALIZAR') {
+    return this.db.$transaction(async transaction => {
+      const ordem = await this.editable(transaction, ordemId)
+      if (ordem.ca_status !== 'EM_ANDAMENTO')
+        throw new ApiError(409, 'Inicie a ordem antes de contar o tempo do serviço.')
+      const item = await transaction.ordItemOs.findFirst({ where: { cn_item: itemId, cn_ordem_servico: ordemId } })
+      if (!item || item.ca_tipo !== 'SERVICO')
+        throw new ApiError(404, 'Item de serviço não encontrado nesta ordem.')
+      if (acao === 'INICIAR')
+        return OrderTimeRepository.start(transaction, item, new Date())
+      if ((acao === 'PAUSAR' && item.ca_status_servico !== 'EM_ANDAMENTO') ||
+        (acao === 'FINALIZAR' && !['EM_ANDAMENTO', 'PAUSADO'].includes(item.ca_status_servico)))
+        throw new ApiError(409, 'Ação indisponível para o estado atual do serviço.')
+      return OrderTimeRepository.stop(transaction, item, new Date(), acao)
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
+  }
 }
 
-export type IOrderRepository = Pick<OrderRepository, 'classificationList' | 'saveClassification' | 'list' | 'findById' | 'saveOrder' | 'move' | 'saveItem' | 'removeItem'>
+export type IOrderRepository = Pick<OrderRepository, 'classificationList' | 'saveClassification' | 'list' | 'findById' | 'saveOrder' | 'move' | 'saveItem' | 'removeItem' | 'timeItem'>

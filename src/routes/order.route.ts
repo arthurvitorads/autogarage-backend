@@ -18,5 +18,6 @@ export class OrderRoutes {
     router.post('/ordensServico/:id/itens', this.controller.createItem)
     router.post('/ordensServico/:id/itens/:itemId', this.controller.updateItem, 200)
     router.post('/ordensServico/:id/itens/:itemId/remover', this.controller.removeItem, 200)
+    router.post('/ordensServico/:id/itens/:itemId/tempo', this.controller.timeItem, 200)
   }
 }

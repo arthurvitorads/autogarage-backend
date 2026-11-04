@@ -10,6 +10,7 @@ export class PersonController {
   constructor(private readonly service: PersonService) {}
 
   paramList = () => this.service.paramList()
+  findById = (request: FastifyRequest) => this.service.findById(DataValidator.id((request.params as { id: string }).id))
 
   create = (request: FastifyRequest) => this.service.create(PersonValidator.parse(request.body))
 

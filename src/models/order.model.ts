@@ -21,21 +21,24 @@ export class OrderModel {
       cn_ordem_servico: item.cn_ordem_servico.toString(),
       qt_quantidade: Number(item.qt_quantidade),
       vl_unitario: Number(item.vl_unitario),
-      vl_total: Number(item.vl_total)
+      vl_total: Number(item.vl_total),
+      dt_servidor: new Date().toISOString()
     }
   }
 
   static toResponse(ordem: OrdOrdemServico & {
     pessoa: CadPessoa;
     itens: OrdItemOs[]
+    venda?: { cn_venda: bigint } | null
   }) {
-    const { pessoa, itens, cn_classificacao_os, an_placa, an_marca, an_modelo, nu_ano, an_cor, qt_quilometragem, ...data } = ordem
+    const { pessoa, itens, venda, cn_classificacao_os, an_placa, an_marca, an_modelo, nu_ano, an_cor, qt_quilometragem, ...data } = ordem
     return {
       ...data,
       cn_ordem_servico: ordem.cn_ordem_servico.toString(),
       cn_pessoa: ordem.cn_pessoa.toString(),
       cn_classificacao: cn_classificacao_os.toString(),
       an_cliente: pessoa.an_nome ?? pessoa.an_razao_social ?? '',
+      cn_venda: venda?.cn_venda.toString() ?? null,
       veiculo: {
         an_placa,
         an_marca,

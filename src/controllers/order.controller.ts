@@ -34,6 +34,8 @@ export class OrderController {
 
   removeItem = (request: FastifyRequest) => this.service.removeItem(this.id(request), this.itemId(request))
 
+  timeItem = (request: FastifyRequest) => this.service.timeItem(this.id(request), this.itemId(request), OrderValidator.time(request.body))
+
   private id(request: FastifyRequest) {
     return DataValidator.id((request.params as {
       id: string

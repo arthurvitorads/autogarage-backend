@@ -5,6 +5,13 @@ import type { IManutPerson } from '../interfaces/person.js'
 import { ApiError } from '../interfaces/error.js'
 
 export class PersonService {
+  async findById(id: bigint) {
+    const pessoa = await this.person.findById(id)
+    if (!pessoa)
+      throw new ApiError(404, 'Pessoa não encontrada.')
+    return PersonModel.toResponse(pessoa)
+  }
+
   constructor(
     private readonly person: IPersonRepository,
   ) {}

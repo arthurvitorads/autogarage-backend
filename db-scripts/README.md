@@ -2,6 +2,8 @@
 
 Os scripts são entregues para execução manual. A aplicação não cria tabelas automaticamente.
 
+Para a atualização de contagem por item, vendas FAT e relatórios, consulte [tempo-faturamento.md](tempo-faturamento.md). Em uma base que já possui o fluxo de O.S., execute `atualizar_tempo_faturamento.sql`.
+
 ## Base existente
 
 Com as tabelas originais já criadas (`adm_perfil`, `adm_usuario`, `cad_pessoa`, `cad_endereco`, `ord_status_os`):

@@ -3,6 +3,13 @@ import { ApiError } from '../interfaces/error.js'
 import { DataValidator as Data } from './data.validator.js'
 
 export class OrderValidator {
+  static time(body: unknown): 'INICIAR' | 'PAUSAR' | 'FINALIZAR' {
+    const { acao } = Data.object(body)
+    if (acao !== 'INICIAR' && acao !== 'PAUSAR' && acao !== 'FINALIZAR')
+      throw new ApiError(400, 'Ação de tempo inválida.')
+    return acao
+  }
+
   static filters(query: unknown): IFiltroOrder {
     const data = Data.object(query ?? {})
     const status = data.status ? Data.text(data.status, 'o status') as TStatusOrder : undefined

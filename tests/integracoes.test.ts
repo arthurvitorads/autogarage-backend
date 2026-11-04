@@ -271,6 +271,7 @@ function workflowDatabase(initialStatus = 'ABERTO') {
   } as Record<string, any>
   let writes = 0
   const transaction = {
+    ordItemOs: { findMany: async () => [] },
     ordOrdemServico: {
       findUnique: async () => ({ ...row }),
       create: async ({ data }: any) => { row = { ...row, ...data }; writes++; return row },

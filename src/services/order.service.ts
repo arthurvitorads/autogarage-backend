@@ -55,4 +55,8 @@ export class OrderService {
   removeItem(ordemId: bigint, itemId: bigint) {
     return this.order.removeItem(ordemId, itemId)
   }
+
+  async timeItem(ordemId: bigint, itemId: bigint, acao: 'INICIAR' | 'PAUSAR' | 'FINALIZAR') {
+    return OrderModel.item(await this.order.timeItem(ordemId, itemId, acao))
+  }
 }

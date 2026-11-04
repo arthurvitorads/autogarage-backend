@@ -1,3 +1,9 @@
+import type { FaturamentoService } from './services/faturamento.service.js'
+import type { RelatorioService } from './services/relatorio.service.js'
+import { FaturamentoController } from './controllers/faturamento.controller.js'
+import { RelatorioController } from './controllers/relatorio.controller.js'
+import { FaturamentoRoutes } from './routes/faturamento.route.js'
+import { RelatorioRoutes } from './routes/relatorio.route.js'
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import helmet from '@fastify/helmet'
@@ -40,6 +46,8 @@ export class Application {
     order: OrderService,
     person: PersonService,
     catalog: CatalogService,
+    faturamento: FaturamentoService,
+    relatorio: RelatorioService,
     logger = true
   ) {
     this.server = Fastify({ logger })
@@ -67,6 +75,8 @@ export class Application {
       new OrderRoutes(new OrderController(order)).register(router)
       new PersonRoutes(new PersonController(person)).register(router)
       new CatalogRoutes(new CatalogController(catalog)).register(router)
+      new FaturamentoRoutes(new FaturamentoController(faturamento)).register(router)
+      new RelatorioRoutes(new RelatorioController(relatorio)).register(router)
     })
   }
 }

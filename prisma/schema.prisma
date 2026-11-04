@@ -66,6 +66,7 @@ model CadPessoa {
   dt_inc                 DateTime @default(now()) @db.Timestamptz(6)
   dt_alt                 DateTime @default(now()) @db.Timestamptz(6)
 
+  vendas FatVenda[]
   endereco CadEndereco?
   ordens OrdOrdemServico[]
 
@@ -89,6 +90,7 @@ model CadProduto {
   dt_inc         DateTime @default(now()) @db.Timestamptz(6)
   dt_alt         DateTime @default(now()) @db.Timestamptz(6)
   itens OrdItemOs[]
+  itensVenda FatItemVenda[]
   @@map("cad_produto")
 }
 
@@ -103,6 +105,7 @@ model CadServico {
   dt_inc           DateTime @default(now()) @db.Timestamptz(6)
   dt_alt           DateTime @default(now()) @db.Timestamptz(6)
   itens OrdItemOs[]
+  itensVenda FatItemVenda[]
   @@map("cad_servico")
 }
 
@@ -142,6 +145,7 @@ model OrdOrdemServico {
   pessoa CadPessoa @relation(fields: [cn_pessoa], references: [cn_pessoa], onDelete: Restrict, onUpdate: Cascade, map: "fk_ord_ordem_servico_1")
   classificacao OrdClassificacaoOs @relation(fields: [cn_classificacao_os], references: [cn_classificacao_os], onDelete: Restrict, onUpdate: Cascade, map: "fk_ord_ordem_servico_2")
   itens OrdItemOs[]
+  venda FatVenda?
   @@index([cn_pessoa], map: "idx_ord_ordem_servico_1")
   @@index([cn_classificacao_os], map: "idx_ord_ordem_servico_2")
   @@map("ord_ordem_servico")
@@ -160,12 +164,18 @@ model OrdItemOs {
   vl_total         Decimal  @db.Decimal(20, 2)
   dt_inc           DateTime @default(now()) @db.Timestamptz(6)
   dt_alt           DateTime @default(now()) @db.Timestamptz(6)
+  ca_status_servico String @default("PENDENTE")
+  qt_tempo_segundos Int @default(0)
+  dt_inicio_tempo DateTime? @db.Timestamptz(6)
+  tempos OrdTempoItemOs[]
+  itemVenda FatItemVenda?
   ordem OrdOrdemServico @relation(fields: [cn_ordem_servico], references: [cn_ordem_servico], onDelete: Restrict, onUpdate: Cascade, map: "fk_ord_item_os_1")
   produto CadProduto? @relation(fields: [cn_produto], references: [cn_produto], onDelete: Restrict, onUpdate: Cascade, map: "fk_ord_item_os_2")
   servico CadServico? @relation(fields: [cn_servico], references: [cn_servico], onDelete: Restrict, onUpdate: Cascade, map: "fk_ord_item_os_3")
   @@index([cn_ordem_servico], map: "idx_ord_item_os_1")
   @@index([cn_produto], map: "idx_ord_item_os_2")
   @@index([cn_servico], map: "idx_ord_item_os_3")
+  @@index([ca_status_servico, qt_tempo_segundos], map: "idx_ord_item_os_4")
   @@map("ord_item_os")
 }
 
@@ -190,3 +200,70 @@ model CadEndereco {
 }
 
 
+
+model OrdTempoItemOs {
+  cn_tempo_item_os BigInt   @id @default(autoincrement()) @db.BigInt
+  cn_item          BigInt   @db.BigInt
+  dt_inicio        DateTime @db.Timestamptz(6)
+  dt_fim           DateTime? @db.Timestamptz(6)
+  qt_segundos      Int      @default(0)
+  ca_encerramento  String?
+  dt_inc           DateTime @default(now()) @db.Timestamptz(6)
+  dt_alt           DateTime @default(now()) @db.Timestamptz(6)
+  item OrdItemOs @relation(fields: [cn_item], references: [cn_item], onDelete: Restrict, onUpdate: Cascade, map: "fk_ord_tempo_item_os_1")
+  @@index([cn_item], map: "idx_ord_tempo_item_os_1")
+  @@map("ord_tempo_item_os")
+}
+
+model FatVenda {
+  cn_venda         BigInt   @id @default(autoincrement()) @db.BigInt
+  nu_numero        Int      @unique @default(autoincrement())
+  cn_pessoa        BigInt   @db.BigInt
+  cn_ordem_servico BigInt?  @unique @db.BigInt
+  ca_chave_requisicao String @unique
+  ca_hash_requisicao String
+  ca_origem        String
+  an_cliente       String
+  ca_documento     String
+  an_email         String   @default("")
+  an_telefone      String   @default("")
+  an_endereco      String   @default("")
+  an_obs           String   @default("")
+  ca_id_firebase   String
+  dt_venda         DateTime @default(now()) @db.Timestamptz(6)
+  vl_total         Decimal  @db.Decimal(20, 2)
+  dt_inc           DateTime @default(now()) @db.Timestamptz(6)
+  dt_alt           DateTime @default(now()) @db.Timestamptz(6)
+  pessoa CadPessoa @relation(fields: [cn_pessoa], references: [cn_pessoa], onDelete: Restrict, onUpdate: Cascade, map: "fk_fat_venda_1")
+  ordem OrdOrdemServico? @relation(fields: [cn_ordem_servico], references: [cn_ordem_servico], onDelete: Restrict, onUpdate: Cascade, map: "fk_fat_venda_2")
+  itens FatItemVenda[]
+  @@index([cn_pessoa], map: "idx_fat_venda_1")
+  @@index([dt_venda], map: "idx_fat_venda_2")
+  @@map("fat_venda")
+}
+
+model FatItemVenda {
+  cn_item_venda    BigInt   @id @default(autoincrement()) @db.BigInt
+  cn_venda         BigInt   @db.BigInt
+  cn_item_os       BigInt?  @unique @db.BigInt
+  ca_tipo          String
+  cn_produto       Int?
+  cn_servico       Int?
+  an_descr         String
+  ca_unidade       String   @default("")
+  qt_quantidade    Decimal  @db.Decimal(12, 3)
+  vl_unitario      Decimal  @db.Decimal(11, 2)
+  vl_custo         Decimal  @db.Decimal(11, 2)
+  vl_total         Decimal  @db.Decimal(20, 2)
+  qt_tempo_segundos Int     @default(0)
+  dt_inc           DateTime @default(now()) @db.Timestamptz(6)
+  dt_alt           DateTime @default(now()) @db.Timestamptz(6)
+  venda FatVenda @relation(fields: [cn_venda], references: [cn_venda], onDelete: Restrict, onUpdate: Cascade, map: "fk_fat_item_venda_1")
+  itemOs OrdItemOs? @relation(fields: [cn_item_os], references: [cn_item], onDelete: Restrict, onUpdate: Cascade, map: "fk_fat_item_venda_2")
+  produto CadProduto? @relation(fields: [cn_produto], references: [cn_produto], onDelete: Restrict, onUpdate: Cascade, map: "fk_fat_item_venda_3")
+  servico CadServico? @relation(fields: [cn_servico], references: [cn_servico], onDelete: Restrict, onUpdate: Cascade, map: "fk_fat_item_venda_4")
+  @@index([cn_venda], map: "idx_fat_item_venda_1")
+  @@index([cn_produto], map: "idx_fat_item_venda_2")
+  @@index([cn_servico], map: "idx_fat_item_venda_3")
+  @@map("fat_item_venda")
+}
