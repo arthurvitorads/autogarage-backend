@@ -13,11 +13,11 @@ export class FaturamentoController {
     return this.service.list(page, limit, search)
   }
 
-  findById = (request: FastifyRequest) => this.service.findById(DataValidator.id((request.params as { id: string }).id))
+  findById = (request: FastifyRequest) =>
+    this.service.findById(DataValidator.id((request.params as { id: string }).id))
 
   create = (request: FastifyRequest) => {
-    if (!request.firebaseUser?.uid)
-      throw new ApiError(401, 'Usuário não autenticado.')
+    if (!request.firebaseUser?.uid) throw new ApiError(401, 'Usuário não autenticado.')
     return this.service.create(FaturamentoValidator.create(request.body), request.firebaseUser.uid)
   }
 }

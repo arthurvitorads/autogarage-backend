@@ -39,19 +39,17 @@ export class CatalogValidator {
     const tipo = Data.text(data.ca_tipo, 'o tipo') as IManutCadastroAuxiliar['ca_tipo']
 
     if (!['CATEGORIA_PRODUTO', 'CATEGORIA_SERVICO', 'MARCA', 'UNIDADE'].includes(tipo))
-
       throw new ApiError(400, 'Tipo de cadastro inválido.')
 
     const sigla = tipo === 'UNIDADE' ? Data.text(data.ca_sigla, 'a sigla').toUpperCase() : ''
 
     if (tipo === 'UNIDADE' && !/^[A-Z0-9]{1,10}$/.test(sigla))
-
       throw new ApiError(400, 'Sigla inválida.')
 
     return {
       ca_tipo: tipo,
       an_descr: Data.text(data.an_descr, 'a descrição'),
-      ca_sigla: sigla
+      ca_sigla: sigla,
     }
   }
 }

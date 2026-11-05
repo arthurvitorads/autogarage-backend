@@ -17,9 +17,13 @@ export class UserController {
   }
 
   update = (request: FastifyRequest) => {
-    const id = UserValidator.id((request.params as {
-      id: string
-    }).id)
+    const id = UserValidator.id(
+      (
+        request.params as {
+          id: string
+        }
+      ).id,
+    )
 
     return this.service.update(id, UserValidator.update(request.body), request.log)
   }

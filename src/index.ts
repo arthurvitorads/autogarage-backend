@@ -40,7 +40,7 @@ const application = new Application(
   new PersonService(prsRespository),
   new CatalogService(new CatalogRepository(prisma)),
   new FaturamentoService(new FaturamentoRepository(prisma)),
-  new RelatorioService(new RelatorioRepository(prisma))
+  new RelatorioService(new RelatorioRepository(prisma)),
 )
 
 const app = application.server
@@ -49,12 +49,12 @@ app.addHook('onClose', async () => {
   await prisma.$disconnect()
 })
 
-app.listen(
-  {
+app
+  .listen({
     port: Number(process.env.PORT),
-    host: process.env.HOST ?? '0.0.0.0'
-  }
-).catch((error) => {
-  app.log.error(error)
-  process.exitCode = 1
-})
+    host: process.env.HOST ?? '0.0.0.0',
+  })
+  .catch((error) => {
+    app.log.error(error)
+    process.exitCode = 1
+  })

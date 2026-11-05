@@ -12,7 +12,7 @@ export class CatalogService {
       total,
       totalPages: Math.ceil(total / limit),
       hasNextPage: page * limit < total,
-      hasPreviousPage: page > 1
+      hasPreviousPage: page > 1,
     }
   }
 
@@ -21,7 +21,7 @@ export class CatalogService {
 
     return {
       produtos: produtos.map(CatalogModel.product),
-      pagination: this.pagination(page, limit, total)
+      pagination: this.pagination(page, limit, total),
     }
   }
 
@@ -30,7 +30,7 @@ export class CatalogService {
 
     return {
       servicos: servicos.map(CatalogModel.service),
-      pagination: this.pagination(page, limit, total)
+      pagination: this.pagination(page, limit, total),
     }
   }
 

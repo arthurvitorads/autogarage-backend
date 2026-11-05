@@ -1,17 +1,27 @@
 import { OrderModel } from '../models/order.model.js'
 import { ApiError } from '../interfaces/error.js'
 import type { IOrderRepository } from '../repositories/order.repository.js'
-import type { IManutOrder, IManutClassificacaoOrder, IManutItemOrder, IFiltroOrder, IMovimentoOrder } from '../interfaces/order.js'
+import type {
+  IManutOrder,
+  IManutClassificacaoOrder,
+  IManutItemOrder,
+  IFiltroOrder,
+  IMovimentoOrder,
+} from '../interfaces/order.js'
 
 export class OrderService {
   constructor(private readonly order: IOrderRepository) {}
 
   async classificationList() {
-    return { order: (await this.order.classificationList()).map(OrderModel.toParamResponse) }
+    return {
+      order: (await this.order.classificationList()).map(OrderModel.toParamResponse),
+    }
   }
 
   async classifications() {
-    return { classificacoes: (await this.order.classificationList()).map(OrderModel.classification) }
+    return {
+      classificacoes: (await this.order.classificationList()).map(OrderModel.classification),
+    }
   }
 
   async saveClassification(id: bigint | null, values: IManutClassificacaoOrder) {
@@ -29,14 +39,13 @@ export class OrderService {
         totalPages: Math.ceil(total / limit),
         hasNextPage: page * limit < total,
         hasPreviousPage: page > 1,
-      }
+      },
     }
   }
 
   async findById(id: bigint) {
     const ordem = await this.order.findById(id)
-    if (!ordem)
-      throw new ApiError(404, 'Ordem de serviço não encontrada.')
+    if (!ordem) throw new ApiError(404, 'Ordem de serviço não encontrada.')
     return OrderModel.toResponse(ordem)
   }
 

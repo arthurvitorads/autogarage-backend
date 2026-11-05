@@ -17,7 +17,7 @@ export class AuthService {
     const token = authorization.slice('Bearer '.length).trim()
 
     if (!token) throw new ApiError(401, 'Token de autenticação inválido.')
-      
+
     try {
       return await this.firebase.verifyToken(token)
     } catch {
@@ -26,14 +26,12 @@ export class AuthService {
   }
 
   async me(uid: string | undefined) {
-    if (!uid) 
-      throw new ApiError(401, 'Usuário não autenticado.')
+    if (!uid) throw new ApiError(401, 'Usuário não autenticado.')
 
     const user = await this.users.findByFirebaseId(uid)
 
-    if (!user) 
-      throw new ApiError(404, 'Usuário não encontrado na base de dados.')
-    
+    if (!user) throw new ApiError(404, 'Usuário não encontrado na base de dados.')
+
     return UserModel.toSession(user)
   }
 }

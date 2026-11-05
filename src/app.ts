@@ -48,18 +48,16 @@ export class Application {
     catalog: CatalogService,
     faturamento: FaturamentoService,
     relatorio: RelatorioService,
-    logger = true
+    logger = true,
   ) {
     this.server = Fastify({ logger })
     this.server.setErrorHandler(ApiResponse.error)
     this.server.setNotFoundHandler((_request, reply) => {
-      return reply.code(404).send(
-        {
-          sucesso: false,
-          code: 404,
-          erro: 'Erro inexperado ao executar o processo: Endpoint inválido ou inexistente.'
-        }
-      )
+      return reply.code(404).send({
+        sucesso: false,
+        code: 404,
+        erro: 'Erro inexperado ao executar o processo: Endpoint inválido ou inexistente.',
+      })
     })
     this.server.register(cors, { origin: true })
     this.server.register(helmet)

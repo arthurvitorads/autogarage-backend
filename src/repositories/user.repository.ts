@@ -21,8 +21,8 @@ export class UserRepository {
       where: {
         an_email: {
           equals: email,
-          mode: 'insensitive'
-        }
+          mode: 'insensitive',
+        },
       },
     })
   }
@@ -46,22 +46,24 @@ export class UserRepository {
         an_nome: values.an_nome,
         bo_sts_reg: values.bo_sts_reg,
         ...(values.cn_perfil === undefined ? {} : { cn_perfil: values.cn_perfil }),
-        dt_alt: new Date()
+        dt_alt: new Date(),
       },
     })
   }
 
   async list(page: number, limit: number, search: string) {
-    const where: Prisma.AdmUsuarioWhereInput = search ? {
-      OR: [
-        {
-          an_nome: { contains: search, mode: 'insensitive' }
-        },
-        {
-          an_email: { contains: search, mode: 'insensitive' }
-        },
-      ]
-} : {}
+    const where: Prisma.AdmUsuarioWhereInput = search
+      ? {
+          OR: [
+            {
+              an_nome: { contains: search, mode: 'insensitive' },
+            },
+            {
+              an_email: { contains: search, mode: 'insensitive' },
+            },
+          ],
+        }
+      : {}
     const [users, total] = await this.db.$transaction([
       this.db.admUsuario.findMany({
         where,
@@ -77,5 +79,7 @@ export class UserRepository {
   }
 }
 
-export type IUserRepository = Pick<UserRepository,
-  'findById' | 'findByFirebaseId' | 'findByEmail' | 'create' | 'update' | 'list'>
+export type IUserRepository = Pick<
+  UserRepository,
+  'findById' | 'findByFirebaseId' | 'findByEmail' | 'create' | 'update' | 'list'
+>

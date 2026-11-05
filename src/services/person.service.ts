@@ -7,24 +7,21 @@ import { ApiError } from '../interfaces/error.js'
 export class PersonService {
   async findById(id: bigint) {
     const pessoa = await this.person.findById(id)
-    if (!pessoa)
-      throw new ApiError(404, 'Pessoa não encontrada.')
+    if (!pessoa) throw new ApiError(404, 'Pessoa não encontrada.')
     return PersonModel.toResponse(pessoa)
   }
 
-  constructor(
-    private readonly person: IPersonRepository,
-  ) {}
+  constructor(private readonly person: IPersonRepository) {}
 
   async paramList() {
     const pessoas = await this.person.paramList()
     return {
-      clientes: pessoas.map(pessoa => ({
+      clientes: pessoas.map((pessoa) => ({
         cn_pessoa: pessoa.cn_pessoa.toString(),
         tipo: pessoa.ca_tipo,
         an_nome: pessoa.an_nome ?? pessoa.an_razao_social ?? '',
         an_documento: pessoa.ca_cpf ?? pessoa.ca_cnpj ?? '',
-      }))
+      })),
     }
   }
 
@@ -33,8 +30,7 @@ export class PersonService {
   }
 
   async update(id: bigint, values: IManutPerson) {
-    if (!await this.person.findById(id))
-      throw new ApiError(404, 'Pessoa não encontrada.')
+    if (!(await this.person.findById(id))) throw new ApiError(404, 'Pessoa não encontrada.')
     return PersonModel.toResponse(await this.person.update(id, values))
   }
 

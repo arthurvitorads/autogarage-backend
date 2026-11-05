@@ -18,7 +18,7 @@ export class UserValidator {
 
     const data = body as Record<string, unknown>
 
-    if (Object.keys(data).some(key => !['an_nome', 'bo_sts_reg', 'cn_perfil'].includes(key))) {
+    if (Object.keys(data).some((key) => !['an_nome', 'bo_sts_reg', 'cn_perfil'].includes(key))) {
       throw new ApiError(400, 'Somente nome, perfil e status podem ser alterados.')
     }
 
@@ -26,15 +26,19 @@ export class UserValidator {
       throw new ApiError(400, 'Informe o nome.')
     }
 
-    if (typeof data.bo_sts_reg !== 'boolean')
-      throw new ApiError(400, 'Status inválido.')
+    if (typeof data.bo_sts_reg !== 'boolean') throw new ApiError(400, 'Status inválido.')
 
     return {
       an_nome: DataValidator.text(data.an_nome, 'o nome'),
       bo_sts_reg: data.bo_sts_reg,
-      ...(data.cn_perfil === undefined ? {} : {
-        cn_perfil: data.cn_perfil === null || data.cn_perfil === '' ? null : DataValidator.id(data.cn_perfil),
-      }),
+      ...(data.cn_perfil === undefined
+        ? {}
+        : {
+            cn_perfil:
+              data.cn_perfil === null || data.cn_perfil === ''
+                ? null
+                : DataValidator.id(data.cn_perfil),
+          }),
     }
   }
 
@@ -46,10 +50,17 @@ export class UserValidator {
     if (typeof data.an_nome !== 'string' || !data.an_nome.trim()) {
       throw new ApiError(400, 'Informe o nome.')
     }
-    if (typeof data.an_email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.an_email.trim())) {
+    if (
+      typeof data.an_email !== 'string' ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.an_email.trim())
+    ) {
       throw new ApiError(400, 'Informe um e-mail válido.')
     }
-    if (typeof data.ca_senha !== 'string' || data.ca_senha.length < 6 || data.ca_senha.length > 128) {
+    if (
+      typeof data.ca_senha !== 'string' ||
+      data.ca_senha.length < 6 ||
+      data.ca_senha.length > 128
+    ) {
       throw new ApiError(400, 'A senha deve conter entre 6 e 128 caracteres.')
     }
     if (data.bo_sts_reg !== undefined && typeof data.bo_sts_reg !== 'boolean') {
@@ -61,7 +72,8 @@ export class UserValidator {
       an_email: DataValidator.text(data.an_email, 'o e-mail').toLowerCase(),
       ca_senha: data.ca_senha,
       bo_sts_reg: data.bo_sts_reg ?? true,
-      cn_perfil: data.cn_perfil == null || data.cn_perfil === '' ? null : DataValidator.id(data.cn_perfil),
+      cn_perfil:
+        data.cn_perfil == null || data.cn_perfil === '' ? null : DataValidator.id(data.cn_perfil),
     }
   }
 }

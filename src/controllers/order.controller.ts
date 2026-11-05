@@ -11,9 +11,11 @@ export class OrderController {
 
   classifications = () => this.service.classifications()
 
-  createClassification = (request: FastifyRequest) => this.service.saveClassification(null, OrderValidator.classification(request.body))
+  createClassification = (request: FastifyRequest) =>
+    this.service.saveClassification(null, OrderValidator.classification(request.body))
 
-  updateClassification = (request: FastifyRequest) => this.service.saveClassification(this.id(request), OrderValidator.classification(request.body))
+  updateClassification = (request: FastifyRequest) =>
+    this.service.saveClassification(this.id(request), OrderValidator.classification(request.body))
 
   list = (request: FastifyRequest) => {
     const { page, limit, search } = PaginationValidator.parse(request.query)
@@ -22,29 +24,44 @@ export class OrderController {
 
   findById = (request: FastifyRequest) => this.service.findById(this.id(request))
 
-  move = (request: FastifyRequest) => this.service.move(this.id(request), OrderValidator.movement(request.body))
+  move = (request: FastifyRequest) =>
+    this.service.move(this.id(request), OrderValidator.movement(request.body))
 
-  create = (request: FastifyRequest) => this.service.saveOrder(null, OrderValidator.order(request.body))
+  create = (request: FastifyRequest) =>
+    this.service.saveOrder(null, OrderValidator.order(request.body))
 
-  update = (request: FastifyRequest) => this.service.saveOrder(this.id(request), OrderValidator.order(request.body))
+  update = (request: FastifyRequest) =>
+    this.service.saveOrder(this.id(request), OrderValidator.order(request.body))
 
-  createItem = (request: FastifyRequest) => this.service.saveItem(this.id(request), null, OrderValidator.item(request.body))
+  createItem = (request: FastifyRequest) =>
+    this.service.saveItem(this.id(request), null, OrderValidator.item(request.body))
 
-  updateItem = (request: FastifyRequest) => this.service.saveItem(this.id(request), this.itemId(request), OrderValidator.item(request.body))
+  updateItem = (request: FastifyRequest) =>
+    this.service.saveItem(this.id(request), this.itemId(request), OrderValidator.item(request.body))
 
-  removeItem = (request: FastifyRequest) => this.service.removeItem(this.id(request), this.itemId(request))
+  removeItem = (request: FastifyRequest) =>
+    this.service.removeItem(this.id(request), this.itemId(request))
 
-  timeItem = (request: FastifyRequest) => this.service.timeItem(this.id(request), this.itemId(request), OrderValidator.time(request.body))
+  timeItem = (request: FastifyRequest) =>
+    this.service.timeItem(this.id(request), this.itemId(request), OrderValidator.time(request.body))
 
   private id(request: FastifyRequest) {
-    return DataValidator.id((request.params as {
-      id: string
-    }).id)
+    return DataValidator.id(
+      (
+        request.params as {
+          id: string
+        }
+      ).id,
+    )
   }
 
   private itemId(request: FastifyRequest) {
-    return DataValidator.id((request.params as {
-      itemId: string
-    }).itemId)
+    return DataValidator.id(
+      (
+        request.params as {
+          itemId: string
+        }
+      ).itemId,
+    )
   }
 }

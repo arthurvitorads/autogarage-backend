@@ -6,18 +6,20 @@ import type { IManutPerfil } from '../interfaces/perfil.js'
 import type { IPerfilRepository } from '../repositories/perfil.repository.js'
 
 export class PerfilService {
-  constructor(
-    private readonly perfil: IPerfilRepository,
-  ) {}
+  constructor(private readonly perfil: IPerfilRepository) {}
 
   async list(page: number, limit: number, search: string) {
     const { perfil, total } = await this.perfil.list(page, limit, search)
-    
+
     return {
       perfil: perfil.map(PerfilModel.toResponse),
       pagination: {
-        page, limit, total, totalPages: Math.ceil(total / limit),
-        hasNextPage: page * limit < total, hasPreviousPage: page > 1,
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page * limit < total,
+        hasPreviousPage: page > 1,
       },
     }
   }
@@ -32,7 +34,6 @@ export class PerfilService {
 
   async create(values: IManutPerfil) {
     try {
-
       return PerfilModel.toResponse(await this.perfil.create(values))
     } catch (error) {
       throw error
@@ -42,13 +43,10 @@ export class PerfilService {
   async update(id: bigint, values: IManutPerfil) {
     const perfil = await this.perfil.findById(id)
 
-    if (!perfil) 
-      throw new ApiError(404, 'Perfil não encontrado.')
+    if (!perfil) throw new ApiError(404, 'Perfil não encontrado.')
 
     try {
-
       return PerfilModel.toResponse(await this.perfil.update(id, values))
-
     } catch (error) {
       throw error
     }

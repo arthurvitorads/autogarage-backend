@@ -10,14 +10,20 @@ export class FaturamentoService {
     const { vendas, total } = await this.faturamento.list(page, limit, search)
     return {
       vendas: vendas.map(FaturamentoModel.toResponse),
-      pagination: { page, limit, total, totalPages: Math.ceil(total / limit), hasNextPage: page * limit < total, hasPreviousPage: page > 1 },
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page * limit < total,
+        hasPreviousPage: page > 1,
+      },
     }
   }
 
   async findById(id: bigint) {
     const venda = await this.faturamento.findById(id)
-    if (!venda)
-      throw new ApiError(404, 'Venda não encontrada.')
+    if (!venda) throw new ApiError(404, 'Venda não encontrada.')
     return FaturamentoModel.toResponse(venda)
   }
 
