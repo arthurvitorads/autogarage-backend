@@ -62,6 +62,11 @@ export class OrderRepository {
         }
       : {}
     if (filters.status) where.ca_status = filters.status
+    if (filters.billable) {
+      where.ca_status = 'FINALIZADO'
+      where.itens = { some: {} }
+      where.venda = { is: null }
+    }
     if (filters.classificacao) where.cn_classificacao_os = filters.classificacao
     if (filters.inicio || filters.fim)
       where.dt_entrada = {

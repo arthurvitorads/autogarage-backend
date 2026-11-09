@@ -4,9 +4,21 @@ import { PerfilModel } from '../models/perfil.model.js'
 
 import type { IManutPerfil } from '../interfaces/perfil.js'
 import type { IPerfilRepository } from '../repositories/perfil.repository.js'
+import { moduleAccess, type TModuleAccess } from '../interfaces/access.js'
 
 export class PerfilService {
   constructor(private readonly perfil: IPerfilRepository) {}
+
+  async access(id: bigint) {
+    const profile = await this.perfil.findAccess(id)
+    if (!profile) throw new ApiError(404, 'Perfil não encontrado.')
+    return { acessos: moduleAccess(profile.acessos) }
+  }
+
+  async saveAccess(id: bigint, levels: TModuleAccess) {
+    if (!(await this.perfil.findById(id))) throw new ApiError(404, 'Perfil não encontrado.')
+    return { acessos: moduleAccess(await this.perfil.saveAccess(id, levels)) }
+  }
 
   async list(page: number, limit: number, search: string) {
     const { perfil, total } = await this.perfil.list(page, limit, search)

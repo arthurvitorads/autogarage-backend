@@ -13,6 +13,12 @@ export class PersonService {
 
   constructor(private readonly person: IPersonRepository) {}
 
+  async customer(id: bigint, orderId?: bigint) {
+    const person = await this.person.findSaleCustomer(id, orderId)
+    if (!person) throw new ApiError(404, 'Cliente não encontrado.')
+    return person
+  }
+
   async paramList() {
     const pessoas = await this.person.paramList()
     return {

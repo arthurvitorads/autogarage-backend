@@ -39,6 +39,8 @@ export class CatalogController {
 
   auxiliaries = () => this.service.auxiliaries()
 
+  itemOptions = () => this.service.itemOptions()
+
   createAuxiliary = (request: FastifyRequest) =>
     this.service.createAuxiliary(CatalogValidator.auxiliary(request.body))
 

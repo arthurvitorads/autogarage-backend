@@ -54,6 +54,24 @@ export class CatalogService {
     return { cadastros: await this.catalog.auxiliaries() }
   }
 
+  async itemOptions() {
+    const [products, services] = await this.catalog.itemOptions()
+    return {
+      produtos: products.map(({ cn_produto, an_nome, ca_unidade, vl_venda }) => ({
+        cn_referencia: cn_produto,
+        an_nome,
+        ca_unidade,
+        vl_preco: Number(vl_venda),
+      })),
+      servicos: services.map(({ cn_servico, an_nome, vl_preco }) => ({
+        cn_referencia: cn_servico,
+        an_nome,
+        ca_unidade: '',
+        vl_preco: Number(vl_preco),
+      })),
+    }
+  }
+
   createAuxiliary(values: IManutCadastroAuxiliar) {
     return this.catalog.createAuxiliary(values)
   }

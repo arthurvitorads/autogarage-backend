@@ -27,6 +27,11 @@ export class OrderController {
 
   findById = (request: FastifyRequest) => this.service.findById(this.id(request))
 
+  billableOrders = (request: FastifyRequest) => {
+    const { page, limit } = PaginationValidator.parse(request.body)
+    return this.service.billableOrders(page, limit)
+  }
+
   move = (request: FastifyRequest) =>
     this.service.move(this.id(request), OrderValidator.movement(request.body))
 

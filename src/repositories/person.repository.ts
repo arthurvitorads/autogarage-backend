@@ -11,6 +11,28 @@ export class PersonRepository {
     })
   }
 
+  findSaleCustomer(id: bigint, orderId?: bigint) {
+    return this.db.cadPessoa.findFirst({
+      where: {
+        cn_pessoa: id,
+        ...(orderId === undefined
+          ? { bo_sts_reg: true, bo_categ_cliente: true }
+          : { ordens: { some: { cn_ordem_servico: orderId, ca_status: 'FINALIZADO' } } }),
+      },
+      select: {
+        an_nome: true,
+        an_razao_social: true,
+        ca_cpf: true,
+        ca_cnpj: true,
+        an_email: true,
+        an_telefone: true,
+        endereco: {
+          select: { an_logradouro: true, an_numero: true, an_cidade: true, ca_uf: true },
+        },
+      },
+    })
+  }
+
   paramList() {
     return this.db.cadPessoa.findMany({
       where: { bo_sts_reg: true, bo_categ_cliente: true },
@@ -85,5 +107,5 @@ export class PersonRepository {
 
 export type IPersonRepository = Pick<
   PersonRepository,
-  'findById' | 'list' | 'create' | 'update' | 'paramList'
+  'findById' | 'findSaleCustomer' | 'list' | 'create' | 'update' | 'paramList'
 >

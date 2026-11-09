@@ -6,6 +6,7 @@ export interface IFiltroOrder {
   classificacao?: bigint
   inicio?: Date
   fim?: Date
+  billable?: boolean
 }
 
 export interface IMovimentoOrder {

@@ -5,9 +5,20 @@ import { PerfilValidator } from '../validators/perfil.validator.js'
 
 import { DataValidator } from '../validators/data.validator.js'
 import { PaginationValidator } from '../validators/pagination.validator.js'
+import { ApiError } from '../interfaces/error.js'
 
 export class PerfilController {
   constructor(private readonly service: PerfilService) {}
+
+  access = (request: FastifyRequest) =>
+    this.service.access(DataValidator.id(DataValidator.object(request.body).cn_perfil))
+
+  saveAccess = (request: FastifyRequest) => {
+    const { id, levels } = PerfilValidator.access(request.body)
+    if (request.session?.cn_perfil === id.toString() && levels.ADMINISTRACAO !== 1)
+      throw new ApiError(409, 'Seu próprio perfil precisa manter acesso total à Administração.')
+    return this.service.saveAccess(id, levels)
+  }
 
   list = (request: FastifyRequest) => {
     const { page, limit, search } = PaginationValidator.parse(request.body)
@@ -26,6 +37,9 @@ export class PerfilController {
   update = (request: FastifyRequest) => {
     const id = DataValidator.id(DataValidator.object(request.body).cn_perfil)
 
-    return this.service.update(id, PerfilValidator.parse(request.body))
+    const values = PerfilValidator.parse(request.body)
+    if (request.session?.cn_perfil === id.toString() && !values.bo_sts_reg)
+      throw new ApiError(409, 'Seu próprio perfil precisa permanecer ativo.')
+    return this.service.update(id, values)
   }
 }

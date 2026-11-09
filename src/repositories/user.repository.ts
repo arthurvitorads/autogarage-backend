@@ -12,7 +12,7 @@ export class UserRepository {
   findByFirebaseId(uid: string) {
     return this.db.admUsuario.findUnique({
       where: { ca_id_firebase: uid },
-      include: { perfil: { select: { an_descr: true } } },
+      include: { perfil: { select: { an_descr: true, bo_sts_reg: true, acessos: true } } },
     })
   }
 

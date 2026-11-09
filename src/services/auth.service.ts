@@ -31,6 +31,7 @@ export class AuthService {
     const user = await this.users.findByFirebaseId(uid)
 
     if (!user) throw new ApiError(404, 'Usuário não encontrado na base de dados.')
+    if (!user.bo_sts_reg) throw new ApiError(403, 'Usuário inativo.')
 
     return UserModel.toSession(user)
   }

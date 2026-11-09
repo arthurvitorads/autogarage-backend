@@ -1,12 +1,29 @@
 import type { Prisma, PrismaClient } from '@prisma/client'
 
 import type { IManutPerfil } from '../interfaces/perfil.js'
+import { modules, type TModuleAccess } from '../interfaces/access.js'
 
 export class PerfilRepository {
   constructor(private readonly db: PrismaClient) {}
 
   findById(id: bigint) {
     return this.db.admPerfil.findUnique({ where: { cn_perfil: id } })
+  }
+
+  findAccess(id: bigint) {
+    return this.db.admPerfil.findUnique({ where: { cn_perfil: id }, select: { acessos: true } })
+  }
+
+  saveAccess(id: bigint, levels: TModuleAccess) {
+    return this.db.$transaction(
+      modules.map((module) =>
+        this.db.admPerfilAcesso.upsert({
+          where: { cn_perfil_ca_modulo: { cn_perfil: id, ca_modulo: module } },
+          create: { cn_perfil: id, ca_modulo: module, nu_nivel: levels[module] ?? 3 },
+          update: { nu_nivel: levels[module] ?? 3 },
+        }),
+      ),
+    )
   }
 
   create(values: IManutPerfil) {
@@ -64,5 +81,5 @@ export class PerfilRepository {
 
 export type IPerfilRepository = Pick<
   PerfilRepository,
-  'findById' | 'create' | 'update' | 'list' | 'paramList'
+  'findById' | 'findAccess' | 'saveAccess' | 'create' | 'update' | 'list' | 'paramList'
 >

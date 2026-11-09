@@ -49,6 +49,27 @@ export class OrderService {
     return OrderModel.toResponse(ordem)
   }
 
+  async billableOrders(page: number, limit: number) {
+    const { ordens, pagination } = await this.list(page, limit, '', { billable: true })
+    return {
+      pagination,
+      ordens: ordens.map(({ cn_ordem_servico, cn_pessoa, nu_numero, an_cliente, ca_status, itens }) => ({
+        cn_ordem_servico,
+        cn_pessoa,
+        nu_numero,
+        an_cliente,
+        ca_status,
+        itens: itens.map(({ ca_tipo, an_descr, qt_quantidade, vl_unitario, vl_total }) => ({
+          ca_tipo,
+          an_descr,
+          qt_quantidade,
+          vl_unitario,
+          vl_total,
+        })),
+      })),
+    }
+  }
+
   async move(id: bigint, values: IMovimentoOrder) {
     return OrderModel.toResponse(await this.order.move(id, values))
   }

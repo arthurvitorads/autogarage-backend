@@ -3,6 +3,7 @@ import type { UserService } from '../services/user.service.js'
 import { UserValidator } from '../validators/user.validator.js'
 import { DataValidator } from '../validators/data.validator.js'
 import { PaginationValidator } from '../validators/pagination.validator.js'
+import { ApiError } from '../interfaces/error.js'
 
 export class UserController {
   constructor(private readonly service: UserService) {}
@@ -20,6 +21,13 @@ export class UserController {
   update = (request: FastifyRequest) => {
     const { cn_usuario, ...values } = DataValidator.object(request.body)
     const id = UserValidator.id(cn_usuario)
-    return this.service.update(id, UserValidator.update(values), request.log)
+    const user = UserValidator.update(values)
+    if (
+      request.session?.cn_usuario === id.toString() &&
+      (!user.bo_sts_reg ||
+        (user.cn_perfil !== undefined && user.cn_perfil?.toString() !== request.session.cn_perfil))
+    )
+      throw new ApiError(409, 'Sua própria conta precisa permanecer ativa e com o perfil atual.')
+    return this.service.update(id, user, request.log)
   }
 }

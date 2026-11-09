@@ -30,8 +30,20 @@ model AdmPerfil {
   dt_alt          DateTime @default(now()) @db.Timestamptz(6)
 
   usuarios AdmUsuario[]
+  acessos  AdmPerfilAcesso[]
 
   @@map("adm_perfil")
+}
+
+model AdmPerfilAcesso {
+  cn_perfil BigInt @db.BigInt
+  ca_modulo String
+  nu_nivel  Int    @db.SmallInt
+
+  perfil AdmPerfil @relation(fields: [cn_perfil], references: [cn_perfil], onDelete: Cascade, onUpdate: Cascade, map: "fk_adm_perfil_acesso_1")
+
+  @@id([cn_perfil, ca_modulo])
+  @@map("adm_perfil_acesso")
 }
 
 model OrdClassificacaoOs {

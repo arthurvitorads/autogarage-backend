@@ -4,6 +4,14 @@ Os scripts são entregues para execução manual. A aplicação não cria tabela
 
 Para a atualização de contagem por item, vendas FAT e relatórios, consulte [tempo-faturamento.md](tempo-faturamento.md). Em uma base que já possui o fluxo de O.S., execute `atualizar_tempo_faturamento.sql`.
 
+## Acessos por módulo
+
+1. Em uma base existente, execute [004_acl_modulos.sql](Atualizacoes/004_acl_modulos.sql). Uma instalação nova já inclui esse script.
+2. Abra [configurar_administrador_acl.sql](configurar_administrador_acl.sql), informe o e-mail de um administrador ativo e execute. O script concede **Total** em Administração ao perfil ativo da conta. Use um perfil reservado aos administradores. Para uma conta sem perfil, o script cria e vincula um perfil dedicado.
+3. Publique o backend e o frontend juntos. Entre com o administrador e configure os níveis em **Administração → Perfil → Acessos**. Aplique também os níveis dos outros módulos ao perfil administrador.
+
+Perfis novos e módulos sem nível configurado começam em **3 - Sem acesso**. Usuários sem perfil ou com perfil inativo ficam sem acesso aos módulos. As opções de seleção usadas na manutenção de O.S. e vendas expõem somente os dados necessários para a operação autorizada.
+
 ## Base existente
 
 Com as tabelas originais já criadas (`adm_perfil`, `adm_usuario`, `cad_pessoa`, `cad_endereco`, `ord_status_os`):
