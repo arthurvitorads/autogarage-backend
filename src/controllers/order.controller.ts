@@ -15,11 +15,14 @@ export class OrderController {
     this.service.saveClassification(null, OrderValidator.classification(request.body))
 
   updateClassification = (request: FastifyRequest) =>
-    this.service.saveClassification(this.id(request), OrderValidator.classification(request.body))
+    this.service.saveClassification(
+      DataValidator.id(DataValidator.object(request.body).cn_classificacao),
+      OrderValidator.classification(request.body),
+    )
 
   list = (request: FastifyRequest) => {
-    const { page, limit, search } = PaginationValidator.parse(request.query)
-    return this.service.list(page, limit, search, OrderValidator.filters(request.query))
+    const { page, limit, search } = PaginationValidator.parse(request.body)
+    return this.service.list(page, limit, search, OrderValidator.filters(request.body))
   }
 
   findById = (request: FastifyRequest) => this.service.findById(this.id(request))
@@ -46,22 +49,10 @@ export class OrderController {
     this.service.timeItem(this.id(request), this.itemId(request), OrderValidator.time(request.body))
 
   private id(request: FastifyRequest) {
-    return DataValidator.id(
-      (
-        request.params as {
-          id: string
-        }
-      ).id,
-    )
+    return DataValidator.id(DataValidator.object(request.body).cn_ordem_servico)
   }
 
   private itemId(request: FastifyRequest) {
-    return DataValidator.id(
-      (
-        request.params as {
-          itemId: string
-        }
-      ).itemId,
-    )
+    return DataValidator.id(DataValidator.object(request.body).cn_item)
   }
 }

@@ -8,9 +8,11 @@ export class DataValidator {
   }
 
   static id(value: unknown): bigint {
+    if (typeof value !== 'string' && typeof value !== 'number' && typeof value !== 'bigint')
+      throw new ApiError(400, 'Identificador inválido.')
     if (typeof value === 'number' && !Number.isSafeInteger(value))
       throw new ApiError(400, 'Envie identificadores grandes como texto.')
-    const id = String(value ?? '')
+    const id = String(value)
     if (!/^[1-9]\d*$/.test(id) || BigInt(id) > 9223372036854775807n)
       throw new ApiError(400, 'Identificador inválido.')
     return BigInt(id)

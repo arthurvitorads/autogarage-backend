@@ -202,9 +202,20 @@ test('rotas: catálogo e ordens validam payload e preservam respostas persistida
   const auth = { authenticate: async () => ({ uid: 'teste' }) } as unknown as AuthService
   const router = new ApiRouter(app, new AuthMiddleware(auth))
   const catalog = { createProduct: async (values: typeof produto) => ({ ...values, cn_produto: 7 }) } as unknown as ICatalogRepository
-  const orders = { saveOrder: async (_id: bigint | null, values: ReturnType<typeof OrderValidator.order>) => ({
-    ...values, cn_ordem_servico: 9n, nu_numero: 9, pessoa: { an_nome: 'Cliente' }, itens: [],
-  }) } as unknown as IOrderRepository
+  const orders = {
+    list: async (page: number, limit: number, search: string, filters: ReturnType<typeof OrderValidator.filters>) => {
+      assert.equal(page, 2)
+      assert.equal(limit, 20)
+      assert.equal(search, 'ABC')
+      assert.equal(filters.status, 'ABERTO')
+      assert.equal(filters.inicio?.toISOString(), '2026-10-30T03:00:00.000Z')
+      assert.equal(filters.fim?.toISOString(), '2026-10-31T02:59:59.000Z')
+      return { ordens: [], total: 0 }
+    },
+    saveOrder: async (_id: bigint | null, values: ReturnType<typeof OrderValidator.order>) => ({
+      ...values, cn_ordem_servico: 9n, nu_numero: 9, pessoa: { an_nome: 'Cliente' }, itens: [],
+    }),
+  } as unknown as IOrderRepository
   new CatalogRoutes(new CatalogController(new CatalogService(catalog))).register(router)
   new OrderRoutes(new OrderController(new OrderService(orders))).register(router)
   try {
@@ -218,6 +229,21 @@ test('rotas: catálogo e ordens validam payload e preservam respostas persistida
     assert.equal(saved.json().dados.cn_ordem_servico, '9')
     assert.equal(saved.json().dados.veiculo.an_placa, 'ABC1234')
     assert.equal(saved.json().dados.an_cliente, 'Cliente')
+    const listed = await app.inject({
+      method: 'POST',
+      url: '/ordensServico/listar',
+      payload: {
+        page: 2,
+        limit: 20,
+        search: 'ABC',
+        status: 'ABERTO',
+        inicio: '2026-10-30T03:00:00Z',
+        fim: '2026-10-31T02:59:59Z',
+      },
+    })
+    assert.equal(listed.statusCode, 200)
+    assert.equal(listed.json().dados.pagination.page, 2)
+    assert.equal((await app.inject({ method: 'GET', url: '/ordensServico' })).statusCode, 404)
   } finally { await app.close() }
 })
 
@@ -346,16 +372,16 @@ test('rotas: movimentação persiste motivo e rejeita edições de OS cancelada 
   const db = workflowDatabase()
   new OrderRoutes(new OrderController(new OrderService(db.repository))).register(router)
   try {
-    const invalid = await app.inject({ method: 'POST', url: '/ordensServico/1/movimentar', payload: { acao: 'CANCELAR', an_motivo_cancelamento: '' } })
+    const invalid = await app.inject({ method: 'POST', url: '/ordensServico/movimentar', payload: { cn_ordem_servico: '1', acao: 'CANCELAR', an_motivo_cancelamento: '' } })
     assert.equal(invalid.statusCode, 400)
     assert.equal(db.writes(), 0)
-    const canceled = await app.inject({ method: 'POST', url: '/ordensServico/1/movimentar', payload: { acao: 'CANCELAR', an_motivo_cancelamento: 'Cliente desistiu' } })
+    const canceled = await app.inject({ method: 'POST', url: '/ordensServico/movimentar', payload: { cn_ordem_servico: '1', acao: 'CANCELAR', an_motivo_cancelamento: 'Cliente desistiu' } })
     assert.equal(canceled.statusCode, 200)
     assert.equal(canceled.json().dados.ca_status, 'CANCELADO')
     assert.equal(canceled.json().dados.an_motivo_cancelamento, 'Cliente desistiu')
-    const edited = await app.inject({ method: 'POST', url: '/ordensServico/1', payload: ordem })
+    const edited = await app.inject({ method: 'POST', url: '/ordensServico/atualizar', payload: { ...ordem, cn_ordem_servico: '1' } })
     assert.equal(edited.statusCode, 409)
-    const removed = await app.inject({ method: 'POST', url: '/ordensServico/1/itens/1/remover', payload: {} })
+    const removed = await app.inject({ method: 'POST', url: '/ordensServico/itens/remover', payload: { cn_ordem_servico: '1', cn_item: '1' } })
     assert.equal(removed.statusCode, 409)
     assert.equal(db.writes(), 1)
   } finally { await app.close() }

@@ -6,6 +6,6 @@ export class AuthRoutes {
   constructor(private readonly controller: AuthController) {}
 
   register(router: ApiRouter) {
-    router.get('/auth/me', this.controller.me)
+    router.post('/auth/me', this.controller.me, 200)
   }
 }

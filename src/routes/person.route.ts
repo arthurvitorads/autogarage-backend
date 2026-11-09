@@ -6,10 +6,10 @@ export class PersonRoutes {
   constructor(private readonly controller: PersonController) {}
 
   register(router: ApiRouter) {
-    router.get('/pessoa', this.controller.list)
-    router.get('/pessoa/:id', this.controller.findById)
-    router.get('/paramPessoa', this.controller.paramList)
+    router.post('/pessoa/listar', this.controller.list, 200)
+    router.post('/pessoa/detalhar', this.controller.findById, 200)
+    router.post('/paramPessoa', this.controller.paramList, 200)
     router.post('/pessoa', this.controller.create)
-    router.post('/pessoa/:id', this.controller.update, 200)
+    router.post('/pessoa/atualizar', this.controller.update, 200)
   }
 }

@@ -9,12 +9,12 @@ export class FaturamentoController {
   constructor(private readonly service: FaturamentoService) {}
 
   list = (request: FastifyRequest) => {
-    const { page, limit, search } = PaginationValidator.parse(request.query)
+    const { page, limit, search } = PaginationValidator.parse(request.body)
     return this.service.list(page, limit, search)
   }
 
   findById = (request: FastifyRequest) =>
-    this.service.findById(DataValidator.id((request.params as { id: string }).id))
+    this.service.findById(DataValidator.id(DataValidator.object(request.body).cn_venda))
 
   create = (request: FastifyRequest) => {
     if (!request.firebaseUser?.uid) throw new ApiError(401, 'Usuário não autenticado.')

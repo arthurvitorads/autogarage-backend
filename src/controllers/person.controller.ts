@@ -11,24 +11,18 @@ export class PersonController {
 
   paramList = () => this.service.paramList()
   findById = (request: FastifyRequest) =>
-    this.service.findById(DataValidator.id((request.params as { id: string }).id))
+    this.service.findById(DataValidator.id(DataValidator.object(request.body).cn_pessoa))
 
   create = (request: FastifyRequest) => this.service.create(PersonValidator.parse(request.body))
 
   update = (request: FastifyRequest) =>
     this.service.update(
-      DataValidator.id(
-        (
-          request.params as {
-            id: string
-          }
-        ).id,
-      ),
+      DataValidator.id(DataValidator.object(request.body).cn_pessoa),
       PersonValidator.parse(request.body),
     )
 
   list = (request: FastifyRequest) => {
-    const { page, limit, search } = PaginationValidator.parse(request.query)
+    const { page, limit, search } = PaginationValidator.parse(request.body)
 
     return this.service.list(page, limit, search)
   }

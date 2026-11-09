@@ -5,7 +5,7 @@ export class RelatorioRoutes {
   constructor(private readonly controller: RelatorioController) {}
 
   register(router: ApiRouter) {
-    router.get('/relatorios/tempos-servicos', this.controller.tempos)
-    router.get('/relatorios/vendas', this.controller.vendas)
+    router.post('/relatorios/tempos-servicos', this.controller.tempos, 200)
+    router.post('/relatorios/vendas', this.controller.vendas, 200)
   }
 }

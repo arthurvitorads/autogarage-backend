@@ -5,14 +5,14 @@ export class CatalogRoutes {
   constructor(private readonly controller: CatalogController) {}
 
   register(router: ApiRouter) {
-    router.get('/produtos', this.controller.products)
+    router.post('/produtos/listar', this.controller.products, 200)
     router.post('/produtos', this.controller.createProduct)
-    router.post('/produtos/:id', this.controller.updateProduct, 200)
-    router.get('/servicos', this.controller.services)
+    router.post('/produtos/atualizar', this.controller.updateProduct, 200)
+    router.post('/servicos/listar', this.controller.services, 200)
     router.post('/servicos', this.controller.createService)
-    router.post('/servicos/:id', this.controller.updateService, 200)
-    router.get('/cadastrosAuxiliares', this.controller.auxiliaries)
+    router.post('/servicos/atualizar', this.controller.updateService, 200)
+    router.post('/cadastrosAuxiliares/listar', this.controller.auxiliaries, 200)
     router.post('/cadastrosAuxiliares', this.controller.createAuxiliary)
-    router.post('/cadastrosAuxiliares/:id', this.controller.updateAuxiliary, 200)
+    router.post('/cadastrosAuxiliares/atualizar', this.controller.updateAuxiliary, 200)
   }
 }

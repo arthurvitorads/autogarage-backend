@@ -7,12 +7,12 @@ export class RelatorioController {
   constructor(private readonly service: RelatorioService) {}
 
   tempos = (request: FastifyRequest) => {
-    const { page, limit } = PaginationValidator.parse(request.query)
-    return this.service.tempos(page, limit, FaturamentoValidator.filters(request.query))
+    const { page, limit } = PaginationValidator.parse(request.body)
+    return this.service.tempos(page, limit, FaturamentoValidator.filters(request.body))
   }
 
   vendas = (request: FastifyRequest) => {
-    const { page, limit } = PaginationValidator.parse(request.query)
-    return this.service.vendas(page, limit, FaturamentoValidator.filters(request.query))
+    const { page, limit } = PaginationValidator.parse(request.body)
+    return this.service.vendas(page, limit, FaturamentoValidator.filters(request.body))
   }
 }

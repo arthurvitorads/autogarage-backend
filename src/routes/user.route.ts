@@ -5,8 +5,8 @@ export class UserRoutes {
   constructor(private readonly controller: UserController) {}
 
   register(router: ApiRouter) {
-    router.get('/usuarios', this.controller.list)
+    router.post('/usuarios/listar', this.controller.list, 200)
     router.post('/usuarios', this.controller.create)
-    router.post('/usuarios/:id', this.controller.update, 200)
+    router.post('/usuarios/atualizar', this.controller.update, 200)
   }
 }

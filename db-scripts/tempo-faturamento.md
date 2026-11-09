@@ -46,13 +46,13 @@ Depois, executar `npm run build` e reiniciar o backend, além de publicar/reinic
 
 ## Rotas
 
-- POST `/ordensServico/:id/itens/:itemId/tempo`: `{ acao: 'INICIAR' | 'PAUSAR' | 'FINALIZAR' }`.
-- GET `/pessoa/:id`: dados do cliente e endereço para conferência.
-- GET/POST `/faturamento/vendas`, GET `/faturamento/vendas/:id`.
-- GET `/relatorios/tempos-servicos?inicio=...&fim=...&ordem=asc|desc&page=1&limit=20`.
-- GET `/relatorios/vendas?inicio=...&fim=...&page=1&limit=20`.
+- `POST /ordensServico/itens/tempo` recebe `cn_ordem_servico`, `cn_item` e `acao` (`INICIAR`, `PAUSAR` ou `FINALIZAR`).
+- `POST /pessoa/detalhar` recebe `cn_pessoa` para consultar o cliente e o endereço.
+- `POST /faturamento/vendas` cria uma venda. `POST /faturamento/vendas/listar` recebe `page`, `limit` e `search`. `POST /faturamento/vendas/detalhar` recebe `cn_venda`.
+- `POST /relatorios/tempos-servicos` recebe `inicio`, `fim`, `ordem` (`asc` ou `desc`), `page` e `limit`.
+- `POST /relatorios/vendas` recebe `inicio`, `fim`, `page` e `limit`.
 
-Todas seguem a autenticação e o envelope `{ sucesso, dados }` do sistema. Conflitos de concorrência retornam 409 para atualização/tentativa posterior. As chaves bigint retornam texto.
+Os parâmetros são enviados no corpo JSON. Todas as rotas seguem a autenticação e o envelope `{ sucesso, dados }` do sistema. Conflitos de concorrência retornam 409 para atualização/tentativa posterior. As chaves bigint são enviadas e retornadas como texto.
 
 ## Validação
 

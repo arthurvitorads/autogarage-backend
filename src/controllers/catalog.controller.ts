@@ -8,13 +8,13 @@ export class CatalogController {
   constructor(private readonly service: CatalogService) {}
 
   products = (request: FastifyRequest) => {
-    const { page, limit, search } = PaginationValidator.parse(request.query)
+    const { page, limit, search } = PaginationValidator.parse(request.body)
 
     return this.service.products(page, limit, search)
   }
 
   services = (request: FastifyRequest) => {
-    const { page, limit, search } = PaginationValidator.parse(request.query)
+    const { page, limit, search } = PaginationValidator.parse(request.body)
 
     return this.service.services(page, limit, search)
   }
@@ -23,13 +23,19 @@ export class CatalogController {
     this.service.createProduct(CatalogValidator.product(request.body))
 
   updateProduct = (request: FastifyRequest) =>
-    this.service.updateProduct(this.id(request), CatalogValidator.product(request.body))
+    this.service.updateProduct(
+      DataValidator.code(DataValidator.object(request.body).cn_produto),
+      CatalogValidator.product(request.body),
+    )
 
   createService = (request: FastifyRequest) =>
     this.service.createService(CatalogValidator.service(request.body))
 
   updateService = (request: FastifyRequest) =>
-    this.service.updateService(this.id(request), CatalogValidator.service(request.body))
+    this.service.updateService(
+      DataValidator.code(DataValidator.object(request.body).cn_servico),
+      CatalogValidator.service(request.body),
+    )
 
   auxiliaries = () => this.service.auxiliaries()
 
@@ -37,15 +43,8 @@ export class CatalogController {
     this.service.createAuxiliary(CatalogValidator.auxiliary(request.body))
 
   updateAuxiliary = (request: FastifyRequest) =>
-    this.service.updateAuxiliary(this.id(request), CatalogValidator.auxiliary(request.body))
-
-  private id(request: FastifyRequest) {
-    return DataValidator.code(
-      (
-        request.params as {
-          id: string
-        }
-      ).id,
+    this.service.updateAuxiliary(
+      DataValidator.code(DataValidator.object(request.body).cn_cadastro),
+      CatalogValidator.auxiliary(request.body),
     )
-  }
 }

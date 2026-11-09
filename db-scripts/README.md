@@ -49,24 +49,28 @@ O script contém somente cinco comandos INSERT, sem tabela temporária, DDL ou c
 
 - Tabelas: `cad_*`, `adm_*`, `ord_*`; campos `cn_`, `an_`, `ca_`, `bo_`, `dt_`, `qt_`, `vl_`, `nu_`, `nm_`, seguindo o cadastro de usuários.
 - Chaves das tabelas antigas e das ordens são bigint e retornam strings na API. Catálogo usa integer, compatível com os seletores existentes.
-- Rotas autenticadas por Firebase; respostas `{ sucesso, dados }`. Gravações usam POST, incluindo alterações, conforme `/usuarios/:id`.
+- Rotas autenticadas por Firebase com respostas `{ sucesso, dados }`. Consultas e gravações usam POST com os dados no corpo JSON.
 - Pessoa e endereço são gravados atomicamente; CPF/CNPJ têm índices únicos existentes.
 - Ao inserir produto em uma ordem, o estoque é debitado. Editar um item estorna a quantidade anterior e aplica a nova; remover estorna o saldo. Sem estoque suficiente a transação inteira é desfeita. Serviços não alteram estoque. Não há nova baixa por mudança de status.
 - As transações de itens usam isolamento serializable; conflito concorrente retorna 409 e solicita nova tentativa. Descrição, unidade e preço do item ficam registrados na ordem; o total é calculado no backend com Decimal.
 - Cadastro de produto permite informar o saldo atual. Não há livro de movimentações de estoque neste escopo.
 - A aplicação não inclui status ou unidades fictícias: cadastre-os pelas telas antes de registrar ordens/produtos.
 
-## Rotas adicionadas
+## Rotas POST
 
-| Cadastro | Consultar | Criar | Alterar |
-| --- | --- | --- | --- |
-| Pessoa | GET /pessoa | POST /pessoa | POST /pessoa/:id |
-| Clientes ativos | GET /paramPessoa | — | — |
-| Produtos | GET /produtos | POST /produtos | POST /produtos/:id |
-| Serviços | GET /servicos | POST /servicos | POST /servicos/:id |
-| Auxiliares | GET /cadastrosAuxiliares | POST /cadastrosAuxiliares | POST /cadastrosAuxiliares/:id |
-| Status O.S. | GET /statusOrdens | POST /statusOrdens | POST /statusOrdens/:id |
-| Ordens | GET /ordensServico e /ordensServico/:id | POST /ordensServico | POST /ordensServico/:id |
-| Itens | Incluídos na ordem | POST /ordensServico/:id/itens | POST /ordensServico/:id/itens/:itemId |
+| Cadastro | Consultar | Criar | Alterar | Identificador no corpo |
+| --- | --- | --- | --- | --- |
+| Usuários | `/usuarios/listar` | `/usuarios` | `/usuarios/atualizar` | `cn_usuario` |
+| Perfis | `/perfil/listar`, `/paramPerfil` | `/perfil` | `/perfil/atualizar` | `cn_perfil` |
+| Pessoa | `/pessoa/listar`, `/pessoa/detalhar` | `/pessoa` | `/pessoa/atualizar` | `cn_pessoa` |
+| Clientes ativos | `/paramPessoa` | — | — | — |
+| Produtos | `/produtos/listar` | `/produtos` | `/produtos/atualizar` | `cn_produto` |
+| Serviços | `/servicos/listar` | `/servicos` | `/servicos/atualizar` | `cn_servico` |
+| Auxiliares | `/cadastrosAuxiliares/listar` | `/cadastrosAuxiliares` | `/cadastrosAuxiliares/atualizar` | `cn_cadastro` |
+| Classificações de O.S. | `/classificacoesOrdens/listar`, `/ordemClassificacao` | `/classificacoesOrdens` | `/classificacoesOrdens/atualizar` | `cn_classificacao` |
+| Ordens | `/ordensServico/listar`, `/ordensServico/detalhar` | `/ordensServico` | `/ordensServico/atualizar` | `cn_ordem_servico` |
+| Itens | Incluídos na ordem | `/ordensServico/itens` | `/ordensServico/itens/atualizar` | `cn_ordem_servico` e, ao alterar, `cn_item` |
 
-Remoção: POST `/ordensServico/:id/itens/:itemId/remover`. A rota antiga GET `/ordemStatus` foi preservada para campos de domínio. Listas paginadas aceitam `page`, `limit` (até 100) e `search`. O frontend percorre as páginas para montar o painel e as listas completas.
+A sessão é consultada em `POST /auth/me` sem corpo. Para movimentar uma O.S., envie `cn_ordem_servico`, `acao` e o motivo quando exigido para `POST /ordensServico/movimentar`. Para remover um item, envie `cn_ordem_servico` e `cn_item` para `POST /ordensServico/itens/remover`.
+
+Listas paginadas aceitam `page`, `limit` (até 100) e `search` no corpo. A listagem de ordens também aceita `status`, `classificacao`, `inicio` e `fim`. Envie identificadores bigint como texto para preservar a precisão.

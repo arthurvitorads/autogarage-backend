@@ -1,10 +1,18 @@
 import { ApiError } from '../interfaces/error.js'
+import { DataValidator } from './data.validator.js'
 
 export class PaginationValidator {
-  static parse(query: unknown) {
-    const data = (query ?? {}) as Record<string, unknown>
-    const page = Number(data.page ?? 1)
-    const limit = Number(data.limit ?? 10)
+  static parse(body: unknown) {
+    const data = DataValidator.object(body === undefined ? {} : body)
+    const { page: rawPage = 1, limit: rawLimit = 10 } = data
+    if (
+      (typeof rawPage !== 'number' && typeof rawPage !== 'string') ||
+      (typeof rawLimit !== 'number' && typeof rawLimit !== 'string')
+    ) {
+      throw new ApiError(400, 'Paginação inválida.')
+    }
+    const page = Number(rawPage)
+    const limit = Number(rawLimit)
 
     if (
       !Number.isSafeInteger(page) ||
