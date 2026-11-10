@@ -1,3 +1,4 @@
+import { ApiResponse } from '../http/api-response.js'
 import type { IRelatorioRepository } from '../repositories/relatorio.repository.js'
 import type { IFiltroRelatorio } from '../interfaces/faturamento.js'
 import { FaturamentoModel } from '../models/faturamento.model.js'
@@ -5,21 +6,10 @@ import { FaturamentoModel } from '../models/faturamento.model.js'
 export class RelatorioService {
   constructor(private readonly relatorio: IRelatorioRepository) {}
 
-  private pagination(page: number, limit: number, total: number) {
-    return {
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit),
-      hasNextPage: page * limit < total,
-      hasPreviousPage: page > 1,
-    }
-  }
-
   async tempos(page: number, limit: number, filtro: IFiltroRelatorio) {
     const { itens, total, resumo } = await this.relatorio.tempos(page, limit, filtro)
-    return {
-      servicos: itens.map((item) => ({
+    return ApiResponse.page({
+      dados: itens.map((item) => ({
         cn_item: item.cn_item.toString(),
         cn_ordem_servico: item.cn_ordem_servico.toString(),
         nu_ordem: item.ordem.nu_numero,
@@ -43,16 +33,16 @@ export class RelatorioService {
         qt_menor_segundos: resumo._min.qt_tempo_segundos ?? 0,
         qt_maior_segundos: resumo._max.qt_tempo_segundos ?? 0,
       },
-      pagination: this.pagination(page, limit, total),
-    }
+      pagination: ApiResponse.pagination(page, limit, total),
+    })
   }
 
   async vendas(page: number, limit: number, filtro: IFiltroRelatorio) {
     const { vendas, total, resumo } = await this.relatorio.vendas(page, limit, filtro)
-    return {
-      vendas: vendas.map(FaturamentoModel.toResponse),
+    return ApiResponse.page({
+      dados: vendas.map(FaturamentoModel.toResponse),
       resumo: { qt_vendas: total, vl_total: Number(resumo._sum.vl_total ?? 0) },
-      pagination: this.pagination(page, limit, total),
-    }
+      pagination: ApiResponse.pagination(page, limit, total),
+    })
   }
 }

@@ -1,3 +1,4 @@
+import { ApiResponse } from '../http/api-response.js'
 import { ApiError } from '../interfaces/error.js'
 import type { ICreateUser, IUpdateUser } from '../interfaces/user.js'
 import { UserModel } from '../models/user.model.js'
@@ -17,17 +18,10 @@ export class UserService {
   async list(page: number, limit: number, search: string) {
     const { users, total } = await this.users.list(page, limit, search)
 
-    return {
-      usuarios: users.map(UserModel.toResponse),
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-        hasNextPage: page * limit < total,
-        hasPreviousPage: page > 1,
-      },
-    }
+    return ApiResponse.page({
+      dados: users.map(UserModel.toResponse),
+      pagination: ApiResponse.pagination(page, limit, total),
+    })
   }
 
   async create(values: ICreateUser, logger: IServiceLogger) {

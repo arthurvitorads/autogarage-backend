@@ -42,8 +42,8 @@ export class PersonValidator {
       bo_categ_cliente: cliente,
       bo_categ_func: funcionario,
       an_cargo: funcionario ? Data.text(data.an_cargo, 'o cargo', false) : '',
-      nm_comissao_percentual: funcionario
-        ? Data.decimal(data.nm_comissao_percentual, 'a comissão', 2, 100)
+      nm_comissao_func: funcionario
+        ? Data.decimal(data.nm_comissao_func, 'a comissão', 2, 100)
         : 0,
       bo_sts_reg: Data.boolean(data.bo_sts_reg),
       endereco: {

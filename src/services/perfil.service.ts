@@ -1,3 +1,4 @@
+import { ApiResponse } from '../http/api-response.js'
 import { ApiError } from '../interfaces/error.js'
 
 import { PerfilModel } from '../models/perfil.model.js'
@@ -12,36 +13,27 @@ export class PerfilService {
   async access(id: bigint) {
     const profile = await this.perfil.findAccess(id)
     if (!profile) throw new ApiError(404, 'Perfil não encontrado.')
-    return { acessos: moduleAccess(profile.acessos) }
+    return moduleAccess(profile.acessos)
   }
 
   async saveAccess(id: bigint, levels: TModuleAccess) {
     if (!(await this.perfil.findById(id))) throw new ApiError(404, 'Perfil não encontrado.')
-    return { acessos: moduleAccess(await this.perfil.saveAccess(id, levels)) }
+    return moduleAccess(await this.perfil.saveAccess(id, levels))
   }
 
   async list(page: number, limit: number, search: string) {
     const { perfil, total } = await this.perfil.list(page, limit, search)
 
-    return {
-      perfil: perfil.map(PerfilModel.toResponse),
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-        hasNextPage: page * limit < total,
-        hasPreviousPage: page > 1,
-      },
-    }
+    return ApiResponse.page({
+      dados: perfil.map(PerfilModel.toResponse),
+      pagination: ApiResponse.pagination(page, limit, total),
+    })
   }
 
   async paramList() {
     const perfil = await this.perfil.paramList()
 
-    return {
-      perfil: perfil.map(PerfilModel.toParamResponse),
-    }
+    return perfil.map(PerfilModel.toParamResponse)
   }
 
   async create(values: IManutPerfil) {

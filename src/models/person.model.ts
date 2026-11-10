@@ -9,7 +9,7 @@ export class PersonModel {
     return {
       ...pessoa,
       cn_pessoa: pessoa.cn_pessoa.toString(),
-      nm_comissao_percentual: Number(pessoa.nm_comissao_percentual ?? 0),
+      nm_comissao_func: Number(pessoa.nm_comissao_func ?? 0),
       endereco: pessoa.endereco
         ? {
             ...pessoa.endereco,

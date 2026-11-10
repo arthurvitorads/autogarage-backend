@@ -1,10 +1,36 @@
 import { ApiError } from '../interfaces/error.js'
+import type { IApiErrorResponse, IApiResponse, IPageResponse, IPagination } from '../interfaces/api-response.js'
 
 import type { FastifyReply, FastifyRequest } from 'fastify'
 
+class ApiPage<T> {
+  constructor(readonly response: IPageResponse<T>) {}
+}
+
 export class ApiResponse {
-  static success(reply: FastifyReply, data: unknown, status: 200 | 201 = 200) {
-    return reply.code(status).send({ sucesso: true, dados: data })
+  static success(data: unknown): IApiResponse<unknown> {
+    if (data instanceof ApiPage) return data.response
+    return { sucesso: true, dados: data }
+  }
+
+  static page<T>(data: Omit<IPageResponse<T>, 'sucesso'>): ApiPage<T> {
+    return new ApiPage({ sucesso: true, ...data })
+  }
+
+  static pagination(page: number, limit: number, total: number): IPagination {
+    return {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+      hasNextPage: page * limit < total,
+      hasPreviousPage: page > 1,
+    }
+  }
+
+  static sendError(reply: FastifyReply, status: number, message: string) {
+    const response: IApiErrorResponse = { sucesso: false, code: status, erro: message }
+    return reply.code(status).send(response)
   }
 
   static error(error: unknown, request: FastifyRequest, reply: FastifyReply) {
@@ -14,29 +40,13 @@ export class ApiResponse {
       } | null
     )?.code
     if (databaseCode === 'P2002')
-      return reply.code(409).send({
-        sucesso: false,
-        code: 409,
-        erro: 'Registro duplicado. Confira documento, referência ou descrição.',
-      })
+      return ApiResponse.sendError(reply, 409, 'Registro duplicado. Confira documento, referência ou descrição.')
     if (databaseCode === 'P2003')
-      return reply.code(400).send({
-        sucesso: false,
-        code: 400,
-        erro: 'Registro relacionado inválido ou em uso.',
-      })
+      return ApiResponse.sendError(reply, 400, 'Registro relacionado inválido ou em uso.')
     if (databaseCode === 'P2025')
-      return reply.code(404).send({
-        sucesso: false,
-        code: 404,
-        erro: 'Registro não encontrado.',
-      })
+      return ApiResponse.sendError(reply, 404, 'Registro não encontrado.')
     if (databaseCode === 'P2034')
-      return reply.code(409).send({
-        sucesso: false,
-        code: 409,
-        erro: 'Os dados foram alterados por outra operação. Atualize e tente novamente.',
-      })
+      return ApiResponse.sendError(reply, 409, 'Os dados foram alterados por outra operação. Atualize e tente novamente.')
     const frameworkStatus = (
       error as {
         statusCode?: number
@@ -62,10 +72,6 @@ export class ApiResponse {
             : //
               'Requisição inválida.'
 
-    return reply.code(status).send({
-      sucesso: false,
-      code: status,
-      erro: message,
-    })
+    return ApiResponse.sendError(reply, status, message)
   }
 }

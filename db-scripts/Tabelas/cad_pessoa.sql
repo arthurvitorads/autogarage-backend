@@ -11,8 +11,8 @@ create table cad_pessoa (
   bo_categ_cliente boolean not null default true,
   bo_categ_func   boolean not null default false,
   an_cargo        text,
-  nm_comissao_percentual numeric(5, 2) default 0
-    check (nm_comissao_percentual between 0 and 100),
+  nm_comissao_func numeric(5, 2) default 0
+    check (nm_comissao_func between 0 and 100),
   bo_sts_reg      boolean not null default true,
   dt_inc          timestamptz not null default now(),
   dt_alt          timestamptz not null default now()

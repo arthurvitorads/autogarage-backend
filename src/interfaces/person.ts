@@ -20,7 +20,7 @@ export interface IManutPerson {
   bo_categ_cliente: boolean
   bo_categ_func: boolean
   an_cargo: string
-  nm_comissao_percentual: number
+  nm_comissao_func: number
   bo_sts_reg: boolean
   endereco: IManutEndereco
 }

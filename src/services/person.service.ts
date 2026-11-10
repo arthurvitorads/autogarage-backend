@@ -1,3 +1,4 @@
+import { ApiResponse } from '../http/api-response.js'
 import { PersonModel } from '../models/person.model.js'
 
 import type { IPersonRepository } from '../repositories/person.repository.js'
@@ -21,14 +22,12 @@ export class PersonService {
 
   async paramList() {
     const pessoas = await this.person.paramList()
-    return {
-      clientes: pessoas.map((pessoa) => ({
-        cn_pessoa: pessoa.cn_pessoa.toString(),
-        tipo: pessoa.ca_tipo,
-        an_nome: pessoa.an_nome ?? pessoa.an_razao_social ?? '',
-        an_documento: pessoa.ca_cpf ?? pessoa.ca_cnpj ?? '',
-      })),
-    }
+    return pessoas.map((pessoa) => ({
+      cn_pessoa: pessoa.cn_pessoa.toString(),
+      tipo: pessoa.ca_tipo,
+      an_nome: pessoa.an_nome ?? pessoa.an_razao_social ?? '',
+      an_documento: pessoa.ca_cpf ?? pessoa.ca_cnpj ?? '',
+    }))
   }
 
   async create(values: IManutPerson) {
@@ -43,16 +42,9 @@ export class PersonService {
   async list(page: number, limit: number, search: string) {
     const { pessoas, total } = await this.person.list(page, limit, search)
 
-    return {
-      pessoa: pessoas.map(PersonModel.toResponse),
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-        hasNextPage: page * limit < total,
-        hasPreviousPage: page > 1,
-      },
-    }
+    return ApiResponse.page({
+      dados: pessoas.map(PersonModel.toResponse),
+      pagination: ApiResponse.pagination(page, limit, total),
+    })
   }
 }

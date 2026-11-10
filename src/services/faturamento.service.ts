@@ -1,3 +1,4 @@
+import { ApiResponse } from '../http/api-response.js'
 import type { IFaturamentoRepository } from '../repositories/faturamento.repository.js'
 import type { IManutVenda } from '../interfaces/faturamento.js'
 import { FaturamentoModel } from '../models/faturamento.model.js'
@@ -8,17 +9,10 @@ export class FaturamentoService {
 
   async list(page: number, limit: number, search: string) {
     const { vendas, total } = await this.faturamento.list(page, limit, search)
-    return {
-      vendas: vendas.map(FaturamentoModel.toResponse),
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-        hasNextPage: page * limit < total,
-        hasPreviousPage: page > 1,
-      },
-    }
+    return ApiResponse.page({
+      dados: vendas.map(FaturamentoModel.toResponse),
+      pagination: ApiResponse.pagination(page, limit, total),
+    })
   }
 
   async findById(id: bigint) {

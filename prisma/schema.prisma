@@ -73,7 +73,7 @@ model CadPessoa {
   bo_categ_cliente       Boolean  @default(true)
   bo_categ_func          Boolean  @default(false)
   an_cargo               String?  @db.Text
-  nm_comissao_percentual Decimal? @default(0) @db.Decimal(5, 2)
+  nm_comissao_func       Decimal? @default(0) @db.Decimal(5, 2)
   bo_sts_reg             Boolean  @default(true)
   dt_inc                 DateTime @default(now()) @db.Timestamptz(6)
   dt_alt                 DateTime @default(now()) @db.Timestamptz(6)
