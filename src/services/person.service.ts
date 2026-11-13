@@ -31,12 +31,18 @@ export class PersonService {
   }
 
   async create(values: IManutPerson) {
+    await this.validateState(values.endereco.cn_estado)
     return PersonModel.toResponse(await this.person.create(values))
   }
 
   async update(id: bigint, values: IManutPerson) {
     if (!(await this.person.findById(id))) throw new ApiError(404, 'Pessoa não encontrada.')
+    await this.validateState(values.endereco.cn_estado)
     return PersonModel.toResponse(await this.person.update(id, values))
+  }
+
+  private async validateState(id: bigint) {
+    if (!(await this.person.findBrazilianState(id))) throw new ApiError(400, 'UF inválida.')
   }
 
   async list(page: number, limit: number, search: string) {

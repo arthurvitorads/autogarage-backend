@@ -30,6 +30,12 @@ Os serviços recebem repository e Firebase por injeção no construtor. Eles nã
 
 Todos os endpoints exigem `Authorization: Bearer <token Firebase>`.
 
+`POST /end/estados` lista os estados cadastrados, ordenados por país e UF. A rota exige acesso de consulta ao módulo Cadastros e dispensa corpo na requisição.
+
+Em uma instalação nova, crie [end_estados](db-scripts/Tabelas/end_estados.sql) antes de [cad_endereco](db-scripts/Tabelas/cad_endereco.sql) e execute a [carga das 27 UFs brasileiras](db-scripts/Tabelas/end_estados_carga.sql).
+
+Em um banco que já tem `cad_endereco.ca_uf`, crie `end_estados` primeiro caso a tabela ainda não exista. Execute a [migração dos endereços](db-scripts/Atualizacoes/cad_endereco_cn_estado.sql) antes de subir o backend e o frontend atualizados. A migração carrega as UFs brasileiras, vincula os endereços existentes e reverte a transação se alguma sigla preenchida estiver sem correspondência.
+
 - `npm run build`: gera o Prisma Client e compila TypeScript.
 - `npm start`: executa o backend compilado.
 - `npm test`: compila e executa testes HTTP com Fastify inject, repository e Firebase em memória. Não acessa banco ou Firebase reais.

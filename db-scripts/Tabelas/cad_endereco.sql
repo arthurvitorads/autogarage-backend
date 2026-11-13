@@ -7,7 +7,7 @@ create table cad_endereco (
   an_complemento  text,
   an_bairro       text,
   an_cidade       text,
-  ca_uf           text,
+  cn_estado       bigint,
   bo_sts_reg      boolean not null default true,
   dt_inc          timestamptz not null default now(),
   dt_alt          timestamptz not null default now()
@@ -16,6 +16,9 @@ create table cad_endereco (
 create unique index if not exists idx_cad_endereco_1
   on cad_endereco (cn_pessoa);
 
+create index if not exists idx_cad_endereco_3
+  on cad_endereco (cn_estado);
+
 create index if not exists idx_cad_endereco_2
   on cad_endereco (dt_inc);
 
@@ -23,5 +26,12 @@ alter table cad_endereco
   add constraint fk_cad_endereco_1
   foreign key (cn_pessoa)
   references cad_pessoa (cn_pessoa)
+  on delete restrict
+  on update cascade;
+
+alter table cad_endereco
+  add constraint fk_cad_endereco_2
+  foreign key (cn_estado)
+  references end_estados (cn_estado)
   on delete restrict
   on update cascade;

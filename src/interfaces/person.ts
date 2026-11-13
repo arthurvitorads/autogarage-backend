@@ -5,7 +5,7 @@ export interface IManutEndereco {
   an_complemento: string
   an_bairro: string
   an_cidade: string
-  ca_uf: string
+  cn_estado: bigint
 }
 
 export interface IManutPerson {

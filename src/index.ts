@@ -14,6 +14,7 @@ import { UserRepository } from './repositories/user.repository.js'
 import { PerfilRepository } from './repositories/perfil.repository.js'
 import { OrderRepository } from './repositories/order.repository.js'
 import { PersonRepository } from './repositories/person.repository.js'
+import { AddressRepository } from './repositories/address.repository.js'
 
 import { FirebaseService } from './services/firebase.service.js'
 
@@ -22,6 +23,7 @@ import { UserService } from './services/user.service.js'
 import { PerfilService } from './services/perfil.service.js'
 import { OrderService } from './services/order.service.js'
 import { PersonService } from './services/person.service.js'
+import { AddressService } from './services/address.service.js'
 import { CatalogRepository } from './repositories/catalog.repository.js'
 import { CatalogService } from './services/catalog.service.js'
 
@@ -41,6 +43,7 @@ const application = new Application(
   new CatalogService(new CatalogRepository(prisma)),
   new FaturamentoService(new FaturamentoRepository(prisma)),
   new RelatorioService(new RelatorioRepository(prisma)),
+  new AddressService(new AddressRepository(prisma)),
 )
 
 const app = application.server

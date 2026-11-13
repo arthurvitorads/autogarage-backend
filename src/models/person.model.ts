@@ -14,6 +14,7 @@ export class PersonModel {
         ? {
             ...pessoa.endereco,
             cn_endereco: pessoa.endereco.cn_endereco.toString(),
+            cn_estado: pessoa.endereco.cn_estado?.toString() ?? null,
             cn_pessoa: pessoa.endereco.cn_pessoa.toString(),
           }
         : null,

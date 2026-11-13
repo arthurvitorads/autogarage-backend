@@ -27,7 +27,7 @@ export class PersonRepository {
         an_email: true,
         an_telefone: true,
         endereco: {
-          select: { an_logradouro: true, an_numero: true, an_cidade: true, ca_uf: true },
+          select: { an_logradouro: true, an_numero: true, an_cidade: true, estado: { select: { ca_uf: true } } },
         },
       },
     })
@@ -37,6 +37,13 @@ export class PersonRepository {
     return this.db.cadPessoa.findMany({
       where: { bo_sts_reg: true, bo_categ_cliente: true },
       orderBy: { an_nome: 'asc' },
+    })
+  }
+
+  findBrazilianState(id: bigint) {
+    return this.db.endEstado.findFirst({
+      where: { cn_estado: id, ca_pais: 'BR' },
+      select: { cn_estado: true },
     })
   }
 
@@ -107,5 +114,5 @@ export class PersonRepository {
 
 export type IPersonRepository = Pick<
   PersonRepository,
-  'findById' | 'findSaleCustomer' | 'list' | 'create' | 'update' | 'paramList'
+  'findById' | 'findSaleCustomer' | 'list' | 'create' | 'update' | 'paramList' | 'findBrazilianState'
 >

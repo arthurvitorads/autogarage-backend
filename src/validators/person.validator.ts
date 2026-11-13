@@ -20,14 +20,8 @@ export class PersonValidator {
     if (!/^\d{10,11}$/.test(telefone)) throw new ApiError(400, 'Telefone inválido.')
     const endereco = Data.object(data.endereco)
     const cep = Data.text(endereco.ca_cep, 'o CEP').replace(/\D/g, '')
-    const uf = Data.text(endereco.ca_uf, 'a UF').toUpperCase()
+    const stateId = Data.id(endereco.cn_estado)
     if (!/^\d{8}$/.test(cep)) throw new ApiError(400, 'CEP inválido.')
-    if (
-      !'AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO'
-        .split(' ')
-        .includes(uf)
-    )
-      throw new ApiError(400, 'UF inválida.')
     return {
       ca_tipo: data.ca_tipo,
       an_nome: data.ca_tipo === 'PF' ? Data.text(data.an_nome, 'o nome') : null,
@@ -48,7 +42,7 @@ export class PersonValidator {
       bo_sts_reg: Data.boolean(data.bo_sts_reg),
       endereco: {
         ca_cep: cep,
-        ca_uf: uf,
+        cn_estado: stateId,
         an_logradouro: Data.text(endereco.an_logradouro, 'o logradouro'),
         an_numero: Data.text(endereco.an_numero, 'o número'),
         an_complemento: Data.text(endereco.an_complemento, 'o complemento', false),

@@ -26,6 +26,9 @@ import { UserRoutes } from './routes/user.route.js'
 import { PerfilRoutes } from './routes/perfil.route.js'
 import { OrderRoutes } from './routes/order.route.js'
 import { PersonRoutes } from './routes/person.route.js'
+import { AddressRoutes } from './routes/address.route.js'
+import { AddressController } from './controllers/address.controller.js'
+import type { AddressService } from './services/address.service.js'
 
 import type { AuthService } from './services/auth.service.js'
 import type { UserService } from './services/user.service.js'
@@ -48,6 +51,7 @@ export class Application {
     catalog: CatalogService,
     faturamento: FaturamentoService,
     relatorio: RelatorioService,
+    address: AddressService,
     logger = true,
   ) {
     this.server = Fastify({ logger })
@@ -58,8 +62,7 @@ export class Application {
     this.server.register(cors, { origin: true })
     this.server.register(helmet)
 
-    //rateLimit
-    this.server.register(rateLimit, { max: 80, timeWindow: 30_000 })
+    this.server.register(rateLimit, { global: false })
     this.server.register(async (server) => {
       const router = new ApiRouter(server, new AuthMiddleware(auth))
 
@@ -68,6 +71,7 @@ export class Application {
       new PerfilRoutes(new PerfilController(perfil)).register(router)
       new OrderRoutes(new OrderController(order)).register(router)
       new PersonRoutes(new PersonController(person)).register(router)
+      new AddressRoutes(new AddressController(address)).register(router)
       new CatalogRoutes(new CatalogController(catalog)).register(router)
       new FaturamentoRoutes(new FaturamentoController(faturamento)).register(router)
       new RelatorioRoutes(new RelatorioController(relatorio)).register(router)

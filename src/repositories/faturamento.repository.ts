@@ -59,7 +59,7 @@ export class FaturamentoRepository {
         }
         const pessoa = await transaction.cadPessoa.findUnique({
           where: { cn_pessoa: values.cn_pessoa },
-          include: { endereco: true },
+          include: { endereco: { include: { estado: { select: { ca_uf: true } } } } },
         })
         if (!pessoa) throw new ApiError(404, 'Cliente não encontrado.')
         const itens: Prisma.FatItemVendaUncheckedCreateWithoutVendaInput[] = []
@@ -160,7 +160,7 @@ export class FaturamentoRepository {
                   endereco.an_complemento,
                   endereco.an_bairro,
                   endereco.an_cidade,
-                  endereco.ca_uf,
+                  endereco.estado?.ca_uf,
                   endereco.ca_cep,
                 ]
                   .filter(Boolean)

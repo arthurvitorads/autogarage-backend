@@ -60,6 +60,20 @@ model OrdClassificacaoOs {
   @@map("ord_status_os")
 }
 
+model EndEstado {
+  cn_estado       BigInt   @id @default(autoincrement()) @db.BigInt
+  an_descr        String   @db.Text
+  ca_uf           String   @db.Text
+  ca_pais         String   @db.VarChar(2)
+  dt_inc          DateTime @default(now()) @db.Timestamptz(6)
+  dt_alt          DateTime @default(now()) @db.Timestamptz(6)
+
+  enderecos CadEndereco[]
+
+  @@unique([ca_pais, ca_uf], map: "idx_end_estados_1")
+  @@map("end_estados")
+}
+
 model CadPessoa {
   cn_pessoa              BigInt   @id @default(autoincrement()) @db.BigInt
   ca_tipo                String   @db.Text
@@ -200,13 +214,16 @@ model CadEndereco {
   an_complemento String?  @db.Text
   an_bairro      String?  @db.Text
   an_cidade      String?  @db.Text
-  ca_uf          String?  @db.Text
+  cn_estado      BigInt?  @db.BigInt
   bo_sts_reg     Boolean  @default(true)
   dt_inc         DateTime @default(now()) @db.Timestamptz(6)
   dt_alt         DateTime @default(now()) @db.Timestamptz(6)
 
   pessoa CadPessoa @relation(fields: [cn_pessoa], references: [cn_pessoa], onDelete: Restrict, onUpdate: Cascade, map: "fk_cad_endereco_1")
 
+  estado EndEstado? @relation(fields: [cn_estado], references: [cn_estado], onDelete: Restrict, onUpdate: Cascade, map: "fk_cad_endereco_2")
+
+  @@index([cn_estado], map: "idx_cad_endereco_3")
   @@index([dt_inc], map: "idx_cad_endereco_2")
   @@map("cad_endereco")
 }
