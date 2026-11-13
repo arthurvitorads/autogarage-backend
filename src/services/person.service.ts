@@ -43,7 +43,7 @@ export class PersonService {
     const { pessoas, total } = await this.person.list(page, limit, search)
 
     return ApiResponse.page({
-      dados: pessoas.map(PersonModel.toResponse),
+      dados: pessoas.map(PersonModel.toListResponse),
       pagination: ApiResponse.pagination(page, limit, total),
     })
   }
