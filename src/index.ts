@@ -1,7 +1,5 @@
 import { FaturamentoRepository } from './repositories/faturamento.repository.js'
-import { RelatorioRepository } from './repositories/relatorio.repository.js'
 import { FaturamentoService } from './services/faturamento.service.js'
-import { RelatorioService } from './services/relatorio.service.js'
 import 'dotenv/config'
 
 import { Application } from './app.js'
@@ -42,7 +40,6 @@ const application = new Application(
   new PersonService(prsRespository),
   new CatalogService(new CatalogRepository(prisma)),
   new FaturamentoService(new FaturamentoRepository(prisma)),
-  new RelatorioService(new RelatorioRepository(prisma)),
   new AddressService(new AddressRepository(prisma)),
 )
 

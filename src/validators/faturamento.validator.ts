@@ -1,5 +1,5 @@
 import { ApiError } from '../interfaces/error.js'
-import type { IManutVenda, IFiltroRelatorio } from '../interfaces/faturamento.js'
+import type { IManutVenda } from '../interfaces/faturamento.js'
 import { DataValidator } from './data.validator.js'
 import { OrderValidator } from './order.validator.js'
 
@@ -20,16 +20,5 @@ export class FaturamentoValidator {
       ca_chave_requisicao: chave,
       itens: ordem ? [] : (data.itens as unknown[]).map((item) => OrderValidator.item(item)),
     }
-  }
-
-  static filters(query: unknown): IFiltroRelatorio {
-    const data = DataValidator.object(query ?? {})
-    const inicio = new Date(DataValidator.text(data.inicio, 'a data inicial'))
-    const fim = new Date(DataValidator.text(data.fim, 'a data final'))
-    if (!Number.isFinite(inicio.getTime()) || !Number.isFinite(fim.getTime()) || inicio > fim)
-      throw new ApiError(400, 'Período inválido.')
-    if (data.ordem !== undefined && data.ordem !== 'asc' && data.ordem !== 'desc')
-      throw new ApiError(400, 'Ordenação inválida.')
-    return { inicio, fim, ordem: data.ordem === 'asc' ? 'asc' : 'desc' }
   }
 }

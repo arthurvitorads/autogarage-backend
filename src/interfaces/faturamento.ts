@@ -7,9 +7,3 @@ export interface IManutVenda {
   ca_chave_requisicao: string
   itens: IManutItemOrder[]
 }
-
-export interface IFiltroRelatorio {
-  inicio: Date
-  fim: Date
-  ordem: 'asc' | 'desc'
-}
