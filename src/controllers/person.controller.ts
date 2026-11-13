@@ -1,6 +1,9 @@
 import type { FastifyRequest } from 'fastify'
 
 import type { PersonService } from '../services/person.service.js'
+import { DocumentoService } from '../services/documento.service.js'
+import { CepService } from '../services/cep.service.js'
+import { ApiError } from '../interfaces/error.js'
 
 import { PaginationValidator } from '../validators/pagination.validator.js'
 import { PersonValidator } from '../validators/person.validator.js'
@@ -20,6 +23,21 @@ export class PersonController {
   }
 
   create = (request: FastifyRequest) => this.service.create(PersonValidator.parse(request.body))
+
+  lookupCnpj = (request: FastifyRequest) => {
+    const { cnpj } = DataValidator.object(request.body)
+    
+    const document = DataValidator.text(cnpj, 'o CNPJ').replace(/[.\/-]/g, '').toUpperCase()
+    if (!PersonValidator.document(document, 'PJ')) throw new ApiError(400, 'CNPJ inválido.')
+    return DocumentoService.fetchCnpj(document)
+  }
+
+  lookupCep = (request: FastifyRequest) => {
+    const { cep } = DataValidator.object(request.body)
+    const postalCode = DataValidator.text(cep, 'o CEP')
+    if (!/^\d{5}-?\d{3}$/.test(postalCode)) throw new ApiError(400, 'CEP inválido.')
+    return CepService.fetchCep(postalCode.replace('-', ''))
+  }
 
   update = (request: FastifyRequest) =>
     this.service.update(

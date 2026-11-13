@@ -12,5 +12,7 @@ export class PersonRoutes {
     router.post('/paramPessoa', this.controller.paramList, [['CADASTROS', 2], ['ORDEM_SERVICO', 1], ['FATURAMENTO', 1]], 200)
     router.post('/pessoa', this.controller.create, [['CADASTROS', 1]])
     router.post('/pessoa/atualizar', this.controller.update, [['CADASTROS', 1]], 200)
+    router.post('/pessoa/consultar-cnpj', this.controller.lookupCnpj, [['CADASTROS', 1]], 200)
+    router.post('/pessoa/consultar-cep', this.controller.lookupCep, [['CADASTROS', 1]], 200)
   }
 }
