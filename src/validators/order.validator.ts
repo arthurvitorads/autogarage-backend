@@ -65,7 +65,6 @@ export class OrderValidator {
 
   static order(body: unknown): IManutOrder {
     const data = Data.object(body)
-    const veiculo = Data.object(data.veiculo)
     const entrada = new Date(Data.text(data.dt_entrada, 'a data de entrada'))
     const previsao = data.dt_previsao ? new Date(Data.text(data.dt_previsao, 'a previsão')) : null
     if (
@@ -73,20 +72,20 @@ export class OrderValidator {
       (previsao && (!Number.isFinite(previsao.getTime()) || previsao < entrada))
     )
       throw new ApiError(400, 'Datas da ordem inválidas.')
-    const placa = Data.text(veiculo.an_placa, 'a placa').toUpperCase().replace(/[\s-]/g, '')
+    const placa = Data.text(data.an_placa, 'a placa').toUpperCase().replace(/[\s-]/g, '')
     if (!/^[A-Z]{3}\d[A-Z0-9]\d{2}$/.test(placa)) throw new ApiError(400, 'Placa inválida.')
     return {
       cn_pessoa: Data.id(data.cn_pessoa),
-      cn_classificacao_os: Data.id(data.cn_classificacao),
+      cn_classificacao_os: Data.id(data.cn_classificacao_os),
       dt_entrada: entrada,
       dt_previsao: previsao,
       an_responsavel: Data.text(data.an_responsavel, 'o responsável', false),
       an_placa: placa,
-      an_marca: Data.text(veiculo.an_marca, 'a marca'),
-      an_modelo: Data.text(veiculo.an_modelo, 'o modelo'),
-      nu_ano: Data.integer(veiculo.nu_ano, 'o ano', 1900, new Date().getFullYear() + 1),
-      an_cor: Data.text(veiculo.an_cor, 'a cor', false),
-      qt_quilometragem: Data.integer(veiculo.qt_quilometragem, 'a quilometragem', 0, 9999999),
+      an_marca: Data.text(data.an_marca, 'a marca'),
+      an_modelo: Data.text(data.an_modelo, 'o modelo'),
+      nu_ano: Data.integer(data.nu_ano, 'o ano', 1900, new Date().getFullYear() + 1),
+      an_cor: Data.text(data.an_cor, 'a cor', false),
+      qt_quilometragem: Data.integer(data.qt_quilometragem, 'a quilometragem', 0, 9999999),
       an_solicitacao: Data.text(data.an_solicitacao, 'a solicitação', false),
       an_obs: Data.text(data.an_obs, 'a observação', false),
     }

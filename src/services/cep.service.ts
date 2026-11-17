@@ -32,6 +32,13 @@ export class CepService {
     )
       throw new ApiError(502, 'O serviço retornou dados inválidos para este CEP.')
 
-    return data
+    return {
+      ca_cep: data.cep,
+      an_logradouro: data.logradouro,
+      an_complemento: data.complemento ?? '',
+      an_bairro: data.bairro,
+      an_cidade: data.localidade,
+      ca_uf: data.uf,
+    }
   }
 }

@@ -24,9 +24,11 @@ export class PersonService {
     const pessoas = await this.person.paramList()
     return pessoas.map((pessoa) => ({
       cn_pessoa: pessoa.cn_pessoa.toString(),
-      tipo: pessoa.ca_tipo,
-      an_nome: pessoa.an_nome ?? pessoa.an_razao_social ?? '',
-      an_documento: pessoa.ca_cpf ?? pessoa.ca_cnpj ?? '',
+      ca_tipo: pessoa.ca_tipo,
+      an_nome: pessoa.an_nome,
+      an_razao_social: pessoa.an_razao_social,
+      ca_cpf: pessoa.ca_cpf,
+      ca_cnpj: pessoa.ca_cnpj,
     }))
   }
 
@@ -49,7 +51,7 @@ export class PersonService {
     const { pessoas, total } = await this.person.list(page, limit, search)
 
     return ApiResponse.page({
-      dados: pessoas.map(PersonModel.toListResponse),
+      dados: pessoas.map(PersonModel.toResponse),
       pagination: ApiResponse.pagination(page, limit, total),
     })
   }

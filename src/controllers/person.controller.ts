@@ -25,16 +25,15 @@ export class PersonController {
   create = (request: FastifyRequest) => this.service.create(PersonValidator.parse(request.body))
 
   lookupCnpj = (request: FastifyRequest) => {
-    const { cnpj } = DataValidator.object(request.body)
-    
-    const document = DataValidator.text(cnpj, 'o CNPJ').replace(/[.\/-]/g, '').toUpperCase()
+    const { ca_cnpj, cnpj } = DataValidator.object(request.body)
+    const document = DataValidator.text(ca_cnpj ?? cnpj, 'o CNPJ').replace(/[.\/-]/g, '').toUpperCase()
     if (!PersonValidator.document(document, 'PJ')) throw new ApiError(400, 'CNPJ inválido.')
     return DocumentoService.fetchCnpj(document)
   }
 
   lookupCep = (request: FastifyRequest) => {
-    const { cep } = DataValidator.object(request.body)
-    const postalCode = DataValidator.text(cep, 'o CEP')
+    const { ca_cep, cep } = DataValidator.object(request.body)
+    const postalCode = DataValidator.text(ca_cep ?? cep, 'o CEP')
     if (!/^\d{5}-?\d{3}$/.test(postalCode)) throw new ApiError(400, 'CEP inválido.')
     return CepService.fetchCep(postalCode.replace('-', ''))
   }

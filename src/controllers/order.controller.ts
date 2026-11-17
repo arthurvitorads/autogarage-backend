@@ -16,7 +16,7 @@ export class OrderController {
 
   updateClassification = (request: FastifyRequest) =>
     this.service.saveClassification(
-      DataValidator.id(DataValidator.object(request.body).cn_classificacao),
+      DataValidator.id(DataValidator.object(request.body).cn_classificacao_os),
       OrderValidator.classification(request.body),
     )
 

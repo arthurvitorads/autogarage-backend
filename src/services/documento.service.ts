@@ -1,5 +1,15 @@
 import { ApiError } from '../interfaces/error.js'
 
+function maskPersonPhone(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 11)
+  if (digits.length <= 2) return digits
+
+  const number = digits.slice(2)
+  const prefixLength = digits.length === 11 ? 5 : 4
+  const suffix = number.slice(prefixLength)
+  return `(${digits.slice(0, 2)}) ${number.slice(0, prefixLength)}${suffix ? '-' + suffix : ''}`
+}
+
 export class DocumentoService {
   static async fetchCnpj(cnpj: string) {
     let response: Response
@@ -36,6 +46,35 @@ export class DocumentoService {
     )
       throw new ApiError(502, 'O serviço retornou dados inválidos para este CNPJ.')
 
-    return data
+    const phone = [data.ddd_telefone_1, data.ddd_telefone_2].find(
+      (value): value is string => typeof value === 'string' && !!value.trim(),
+    )
+
+    let logradouro = typeof data.logradouro === 'string' ? data.logradouro.trim() : ''
+    const streetType =
+      typeof data.descricao_tipo_de_logradouro === 'string'
+        ? data.descricao_tipo_de_logradouro.trim()
+        : ''
+
+    if (logradouro && streetType) {
+      const street = logradouro.toUpperCase()
+      const type = streetType.toUpperCase()
+      if (street !== type && !street.startsWith(type + ' ')) logradouro = streetType + ' ' + logradouro
+    }
+
+    return {
+      ca_cnpj: cnpj,
+      an_razao_social: data.razao_social.trim(),
+      an_nome_fantasia: typeof data.nome_fantasia === 'string' ? data.nome_fantasia.trim() : '',
+      an_email: typeof data.email === 'string' ? data.email.trim() : '',
+      an_telefone: phone ? maskPersonPhone(phone) : null,
+      ca_cep: data.cep ?? '',
+      an_logradouro: logradouro,
+      an_numero: data.numero ?? '',
+      an_complemento: data.complemento ?? '',
+      an_bairro: data.bairro ?? '',
+      an_cidade: data.municipio ?? '',
+      ca_uf: data.uf ?? '',
+    }
   }
 }
