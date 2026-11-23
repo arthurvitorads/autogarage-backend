@@ -135,14 +135,37 @@ model CadServico {
   @@map("cad_servico")
 }
 
-model CadAuxiliar {
-  cn_cadastro Int      @id @default(autoincrement())
-  ca_tipo     String
+model CadCategoriaProduto {
+  cn_categoria_produto Int      @id @default(autoincrement())
   an_descr    String
-  ca_sigla    String   @default("")
   dt_inc      DateTime @default(now()) @db.Timestamptz(6)
   dt_alt      DateTime @default(now()) @db.Timestamptz(6)
-  @@map("cad_auxiliar")
+  @@map("cad_categoria_produto")
+}
+
+model CadCategoriaServico {
+  cn_categoria_servico Int      @id @default(autoincrement())
+  an_descr    String
+  dt_inc      DateTime @default(now()) @db.Timestamptz(6)
+  dt_alt      DateTime @default(now()) @db.Timestamptz(6)
+  @@map("cad_categoria_servico")
+}
+
+model CadMarca {
+  cn_marca Int      @id @default(autoincrement())
+  an_descr    String
+  dt_inc      DateTime @default(now()) @db.Timestamptz(6)
+  dt_alt      DateTime @default(now()) @db.Timestamptz(6)
+  @@map("cad_marca")
+}
+
+model CadUnidade {
+  cn_unidade Int      @id @default(autoincrement())
+  an_descr    String
+  ca_sigla    String   @unique(map: "idx_cad_unidade_2")
+  dt_inc      DateTime @default(now()) @db.Timestamptz(6)
+  dt_alt      DateTime @default(now()) @db.Timestamptz(6)
+  @@map("cad_unidade")
 }
 
 model OrdOrdemServico {

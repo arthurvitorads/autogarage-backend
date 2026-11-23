@@ -49,11 +49,16 @@ export class Application {
     faturamento: FaturamentoService,
     address: AddressService,
     logger = true,
+    registrationRoutes: readonly { register(router: ApiRouter): void }[] = [],
   ) {
     this.server = Fastify({ logger })
     this.server.setErrorHandler(ApiResponse.error)
     this.server.setNotFoundHandler((_request, reply) => {
-      return ApiResponse.sendError(reply, 404, 'Erro inexperado ao executar o processo: Endpoint inválido ou inexistente.')
+      return ApiResponse.sendError(
+        reply,
+        404,
+        'Erro inexperado ao executar o processo: Endpoint inválido ou inexistente.',
+      )
     })
     this.server.register(cors, { origin: true })
     this.server.register(helmet)
@@ -69,6 +74,7 @@ export class Application {
       new PersonRoutes(new PersonController(person)).register(router)
       new AddressRoutes(new AddressController(address)).register(router)
       new CatalogRoutes(new CatalogController(catalog)).register(router)
+      for (const routes of registrationRoutes) routes.register(router)
       new FaturamentoRoutes(new FaturamentoController(faturamento)).register(router)
     })
   }
