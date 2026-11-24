@@ -32,3 +32,22 @@ create index if not exists idx_fat_venda_1
 
 create index if not exists idx_fat_venda_2
   on fat_venda (dt_venda);
+
+comment on column fat_venda.cn_venda is 'Identificador da venda.';
+comment on column fat_venda.nu_numero is 'Número sequencial exibido ao usuário.';
+comment on column fat_venda.cn_pessoa is 'Identificador da pessoa.';
+comment on column fat_venda.cn_ordem_servico is 'Identificador da ordem de serviço.';
+comment on column fat_venda.ca_chave_requisicao is 'Chave de idempotência da solicitação de venda.';
+comment on column fat_venda.ca_hash_requisicao is 'Hash dos dados da solicitação de venda.';
+comment on column fat_venda.ca_origem is 'Origem da venda, direta ou por ordem de serviço.';
+comment on column fat_venda.an_cliente is 'Nome ou razão social registrado na venda.';
+comment on column fat_venda.ca_documento is 'CPF ou CNPJ registrado na venda.';
+comment on column fat_venda.an_email is 'E-mail do cliente registrado na venda.';
+comment on column fat_venda.an_telefone is 'Telefone do cliente registrado na venda.';
+comment on column fat_venda.an_endereco is 'Endereço do cliente registrado na venda.';
+comment on column fat_venda.an_obs is 'Observações.';
+comment on column fat_venda.ca_id_firebase is 'Identificador Firebase do usuário que registrou a venda.';
+comment on column fat_venda.dt_venda is 'Data e hora da venda.';
+comment on column fat_venda.vl_total is 'Valor total da venda.';
+comment on column fat_venda.dt_inc is 'Data e hora de inclusão.';
+comment on column fat_venda.dt_alt is 'Data e hora da última alteração.';

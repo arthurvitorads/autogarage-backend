@@ -12,3 +12,9 @@ create unique index if not exists idx_cad_unidade_1
 
 create unique index if not exists idx_cad_unidade_2
   on cad_unidade (ca_sigla);
+
+comment on column cad_unidade.cn_unidade is 'Identificador da unidade de medida.';
+comment on column cad_unidade.an_descr is 'Descrição do registro.';
+comment on column cad_unidade.ca_sigla is 'Sigla da unidade de medida.';
+comment on column cad_unidade.dt_inc is 'Data e hora de inclusão.';
+comment on column cad_unidade.dt_alt is 'Data e hora da última alteração.';

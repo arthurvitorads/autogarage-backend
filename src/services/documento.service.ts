@@ -11,7 +11,7 @@ function maskPersonPhone(value: string) {
 }
 
 export class DocumentoService {
-  static async fetchCnpj(cnpj: string) {
+  static async consultarCnpj(cnpj: string) {
     let response: Response
     try {
       response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpj}`, {

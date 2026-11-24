@@ -20,3 +20,18 @@ create unique index if not exists idx_cad_produto_1
 
 create index if not exists idx_cad_produto_2
   on cad_produto (an_nome);
+
+comment on column cad_produto.cn_produto is 'Identificador do produto.';
+comment on column cad_produto.an_nome is 'Nome do produto.';
+comment on column cad_produto.an_referencia is 'Referência comercial do produto.';
+comment on column cad_produto.an_categoria is 'Descrição da categoria no catálogo.';
+comment on column cad_produto.an_marca is 'Marca.';
+comment on column cad_produto.ca_unidade is 'Sigla da unidade de medida.';
+comment on column cad_produto.vl_custo is 'Custo unitário.';
+comment on column cad_produto.vl_venda is 'Preço unitário de venda.';
+comment on column cad_produto.qt_estoque is 'Quantidade em estoque.';
+comment on column cad_produto.qt_estoque_min is 'Quantidade mínima de estoque.';
+comment on column cad_produto.an_obs is 'Observações.';
+comment on column cad_produto.bo_sts_reg is 'Indica se o registro está ativo.';
+comment on column cad_produto.dt_inc is 'Data e hora de inclusão.';
+comment on column cad_produto.dt_alt is 'Data e hora da última alteração.';

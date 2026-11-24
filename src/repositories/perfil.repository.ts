@@ -6,15 +6,15 @@ import { modules, type TModuleAccess } from '../interfaces/access.js'
 export class PerfilRepository {
   constructor(private readonly db: PrismaClient) {}
 
-  findById(id: bigint) {
+  detalhar(id: bigint) {
     return this.db.admPerfil.findUnique({ where: { cn_perfil: id } })
   }
 
-  findAccess(id: bigint) {
+  consultarAcessos(id: bigint) {
     return this.db.admPerfil.findUnique({ where: { cn_perfil: id }, select: { acessos: true } })
   }
 
-  saveAccess(id: bigint, levels: TModuleAccess) {
+  manutAcessos(id: bigint, levels: TModuleAccess) {
     return this.db.$transaction(
       modules.map((module) =>
         this.db.admPerfilAcesso.upsert({
@@ -26,7 +26,7 @@ export class PerfilRepository {
     )
   }
 
-  create(values: IManutPerfil) {
+  manutInc(values: IManutPerfil) {
     return this.db.admPerfil.create({
       data: {
         an_descr: values.an_descr ?? '',
@@ -36,7 +36,7 @@ export class PerfilRepository {
     })
   }
 
-  update(id: bigint, values: IManutPerfil) {
+  manutAlt(id: bigint, values: IManutPerfil) {
     return this.db.admPerfil.update({
       where: { cn_perfil: id },
       data: {
@@ -47,7 +47,7 @@ export class PerfilRepository {
     })
   }
 
-  async list(page: number, limit: number, search: string) {
+  async view(page: number, limit: number, search: string) {
     const where: Prisma.AdmPerfilWhereInput = search
       ? {
           OR: [
@@ -72,7 +72,7 @@ export class PerfilRepository {
     return { perfil, total }
   }
 
-  async paramList() {
+  async domain() {
     return this.db.admPerfil.findMany({
       orderBy: { cn_perfil: 'asc' },
     })
@@ -81,5 +81,5 @@ export class PerfilRepository {
 
 export type IPerfilRepository = Pick<
   PerfilRepository,
-  'findById' | 'findAccess' | 'saveAccess' | 'create' | 'update' | 'list' | 'paramList'
+  'detalhar' | 'consultarAcessos' | 'manutAcessos' | 'manutInc' | 'manutAlt' | 'view' | 'domain'
 >

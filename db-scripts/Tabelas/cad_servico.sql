@@ -12,3 +12,13 @@ create table if not exists cad_servico (
 
 create index if not exists idx_cad_servico_1
   on cad_servico (an_nome);
+
+comment on column cad_servico.cn_servico is 'Identificador do serviço.';
+comment on column cad_servico.an_nome is 'Nome do serviço.';
+comment on column cad_servico.an_categoria is 'Descrição da categoria no catálogo.';
+comment on column cad_servico.vl_preco is 'Preço de referência do serviço.';
+comment on column cad_servico.nu_tempo_estimado is 'Tempo estimado do serviço em minutos.';
+comment on column cad_servico.an_obs is 'Observações.';
+comment on column cad_servico.bo_sts_reg is 'Indica se o registro está ativo.';
+comment on column cad_servico.dt_inc is 'Data e hora de inclusão.';
+comment on column cad_servico.dt_alt is 'Data e hora da última alteração.';

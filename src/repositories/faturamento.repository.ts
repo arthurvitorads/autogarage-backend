@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto'
 export class FaturamentoRepository {
   constructor(private readonly db: PrismaClient) {}
 
-  async list(page: number, limit: number, search: string) {
+  async view(page: number, limit: number, search: string) {
     const where: Prisma.FatVendaWhereInput = search
       ? {
           OR: [
@@ -31,14 +31,14 @@ export class FaturamentoRepository {
     return { vendas, total }
   }
 
-  findById(id: bigint) {
+  detalhar(id: bigint) {
     return this.db.fatVenda.findUnique({
       where: { cn_venda: id },
       include: { itens: true },
     })
   }
 
-  create(values: IManutVenda, uid: string) {
+  manutInc(values: IManutVenda, uid: string) {
     const hash = createHash('sha256')
       .update(
         JSON.stringify(values, (_key, value) =>
@@ -181,4 +181,4 @@ export class FaturamentoRepository {
   }
 }
 
-export type IFaturamentoRepository = Pick<FaturamentoRepository, 'list' | 'findById' | 'create'>
+export type IFaturamentoRepository = Pick<FaturamentoRepository, 'view' | 'detalhar' | 'manutInc'>

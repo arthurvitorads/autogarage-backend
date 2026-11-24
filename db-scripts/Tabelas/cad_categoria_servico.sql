@@ -7,3 +7,8 @@ create table if not exists cad_categoria_servico (
 
 create unique index if not exists idx_cad_categoria_servico_1
   on cad_categoria_servico (lower(btrim(an_descr)));
+
+comment on column cad_categoria_servico.cn_categoria_servico is 'Identificador da categoria do serviço.';
+comment on column cad_categoria_servico.an_descr is 'Descrição do registro.';
+comment on column cad_categoria_servico.dt_inc is 'Data e hora de inclusão.';
+comment on column cad_categoria_servico.dt_alt is 'Data e hora da última alteração.';

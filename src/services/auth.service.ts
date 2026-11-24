@@ -1,11 +1,11 @@
 import { ApiError } from '../interfaces/error.js'
-import { UserModel } from '../models/user.model.js'
-import type { IUserRepository } from '../repositories/user.repository.js'
+import { UsuarioModel } from '../models/usuario.model.js'
+import type { IUsuarioRepository } from '../repositories/usuario.repository.js'
 import type { IFirebaseService } from './firebase.service.js'
 
 export class AuthService {
   constructor(
-    private readonly users: IUserRepository,
+    private readonly usuarioRepository: IUsuarioRepository,
     private readonly firebase: IFirebaseService,
   ) {}
 
@@ -28,11 +28,11 @@ export class AuthService {
   async me(uid: string | undefined) {
     if (!uid) throw new ApiError(401, 'Usuário não autenticado.')
 
-    const user = await this.users.findByFirebaseId(uid)
+    const user = await this.usuarioRepository.buscarPorFirebaseId(uid)
 
     if (!user) throw new ApiError(404, 'Usuário não encontrado na base de dados.')
     if (!user.bo_sts_reg) throw new ApiError(403, 'Usuário inativo.')
 
-    return UserModel.toSession(user)
+    return UsuarioModel.paraSessao(user)
   }
 }

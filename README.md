@@ -22,33 +22,6 @@ src/
   firebase-admin.ts Configuração do Firebase Admin
 ```
 
-Fluxo: `rota → autenticação → controller → validação → serviço → repository/Firebase → modelo → resposta JSON`.
-
-Os serviços recebem repository e Firebase por injeção no construtor. Eles não dependem de requests ou replies do Fastify. Controllers usam métodos vinculados à instância para preservar `this` nos handlers.
-
-## API
-
-Todos os endpoints exigem `Authorization: Bearer <token Firebase>`.
-
-`POST /end/estados` lista os estados cadastrados, ordenados por país e UF. A rota exige acesso de consulta ao módulo Cadastros e dispensa corpo na requisição.
-
-Em uma instalação nova, crie [end_estados](db-scripts/Tabelas/end_estados.sql) antes de [cad_endereco](db-scripts/Tabelas/cad_endereco.sql) e execute a [carga das 27 UFs brasileiras](db-scripts/Tabelas/end_estados_carga.sql).
-
-Em um banco que já tem `cad_endereco.ca_uf`, crie `end_estados` primeiro caso a tabela ainda não exista. Execute a [migração dos endereços](db-scripts/Atualizacoes/cad_endereco_cn_estado.sql) antes de subir o backend e o frontend atualizados. A migração carrega as UFs brasileiras, vincula os endereços existentes e reverte a transação se alguma sigla preenchida estiver sem correspondência.
-
-## Cadastros de produtos e serviços
-
-Produtos, serviços, categorias de produto, categorias de serviço, marcas e unidades têm rotas próprias de listagem, inclusão e atualização.
-
-Crie as tabelas nesta ordem antes de subir a aplicação atualizada.
-
-1. [cad_categoria_produto.sql](db-scripts/Tabelas/cad_categoria_produto.sql)
-2. [cad_categoria_servico.sql](db-scripts/Tabelas/cad_categoria_servico.sql)
-3. [cad_marca.sql](db-scripts/Tabelas/cad_marca.sql)
-4. [cad_unidade.sql](db-scripts/Tabelas/cad_unidade.sql)
-
-Em bancos existentes, execute depois [separar_cadastros.sql](db-scripts/Atualizacoes/separar_cadastros.sql). O script copia os registros legados com seus códigos e datas, ajusta as sequências e preserva a tabela de origem.
-
 ## Comandos
 
 - `npm run build`: gera o Prisma Client e compila TypeScript.

@@ -7,3 +7,8 @@ create table if not exists cad_categoria_produto (
 
 create unique index if not exists idx_cad_categoria_produto_1
   on cad_categoria_produto (lower(btrim(an_descr)));
+
+comment on column cad_categoria_produto.cn_categoria_produto is 'Identificador da categoria do produto.';
+comment on column cad_categoria_produto.an_descr is 'Descrição do registro.';
+comment on column cad_categoria_produto.dt_inc is 'Data e hora de inclusão.';
+comment on column cad_categoria_produto.dt_alt is 'Data e hora da última alteração.';

@@ -9,3 +9,10 @@ create table if not exists end_estados (
 
 create unique index if not exists idx_end_estados_1
   on end_estados (ca_pais, ca_uf);
+
+comment on column end_estados.cn_estado is 'Identificador do estado.';
+comment on column end_estados.an_descr is 'Descrição do registro.';
+comment on column end_estados.ca_uf is 'Sigla da unidade federativa.';
+comment on column end_estados.ca_pais is 'Código do país com dois caracteres.';
+comment on column end_estados.dt_inc is 'Data e hora de inclusão.';
+comment on column end_estados.dt_alt is 'Data e hora da última alteração.';

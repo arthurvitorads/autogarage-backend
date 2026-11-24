@@ -7,3 +7,8 @@ create table if not exists cad_marca (
 
 create unique index if not exists idx_cad_marca_1
   on cad_marca (lower(btrim(an_descr)));
+
+comment on column cad_marca.cn_marca is 'Identificador da marca.';
+comment on column cad_marca.an_descr is 'Descrição do registro.';
+comment on column cad_marca.dt_inc is 'Data e hora de inclusão.';
+comment on column cad_marca.dt_alt is 'Data e hora da última alteração.';

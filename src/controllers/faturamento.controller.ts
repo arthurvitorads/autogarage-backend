@@ -8,16 +8,16 @@ import { ApiError } from '../interfaces/error.js'
 export class FaturamentoController {
   constructor(private readonly service: FaturamentoService) {}
 
-  list = (request: FastifyRequest) => {
+  view = (request: FastifyRequest) => {
     const { page, limit, search } = PaginationValidator.parse(request.body)
-    return this.service.list(page, limit, search)
+    return this.service.view(page, limit, search)
   }
 
-  findById = (request: FastifyRequest) =>
-    this.service.findById(DataValidator.id(DataValidator.object(request.body).cn_venda))
+  detalhar = (request: FastifyRequest) =>
+    this.service.detalhar(DataValidator.id(DataValidator.object(request.body).cn_venda))
 
-  create = (request: FastifyRequest) => {
+  manutInc = (request: FastifyRequest) => {
     if (!request.firebaseUser?.uid) throw new ApiError(401, 'Usuário não autenticado.')
-    return this.service.create(FaturamentoValidator.create(request.body), request.firebaseUser.uid)
+    return this.service.manutInc(FaturamentoValidator.manutInc(request.body), request.firebaseUser.uid)
   }
 }

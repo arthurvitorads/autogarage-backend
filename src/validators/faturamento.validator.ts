@@ -1,10 +1,10 @@
 import { ApiError } from '../interfaces/error.js'
 import type { IManutVenda } from '../interfaces/faturamento.js'
 import { DataValidator } from './data.validator.js'
-import { OrderValidator } from './order.validator.js'
+import { OrdemServicoValidator } from './ordem-servico.validator.js'
 
 export class FaturamentoValidator {
-  static create(body: unknown): IManutVenda {
+  static manutInc(body: unknown): IManutVenda {
     const data = DataValidator.object(body)
     const ordem = data.cn_ordem_servico == null ? null : DataValidator.id(data.cn_ordem_servico)
     const chave = DataValidator.text(data.ca_chave_requisicao, 'a chave da requisição')
@@ -18,7 +18,7 @@ export class FaturamentoValidator {
       cn_ordem_servico: ordem,
       an_obs: DataValidator.text(data.an_obs, 'a observação', false),
       ca_chave_requisicao: chave,
-      itens: ordem ? [] : (data.itens as unknown[]).map((item) => OrderValidator.item(item)),
+      itens: ordem ? [] : (data.itens as unknown[]).map((item) => OrdemServicoValidator.manutItem(item)),
     }
   }
 }

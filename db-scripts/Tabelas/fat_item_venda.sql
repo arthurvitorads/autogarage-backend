@@ -36,3 +36,19 @@ create index if not exists idx_fat_item_venda_2
 
 create index if not exists idx_fat_item_venda_3
   on fat_item_venda (cn_servico);
+
+comment on column fat_item_venda.cn_item_venda is 'Identificador do item da venda.';
+comment on column fat_item_venda.cn_venda is 'Identificador da venda.';
+comment on column fat_item_venda.cn_item_os is 'Identificador do item da ordem que originou o faturamento.';
+comment on column fat_item_venda.ca_tipo is 'Tipo do item faturado, PRODUTO ou SERVICO.';
+comment on column fat_item_venda.cn_produto is 'Identificador do produto.';
+comment on column fat_item_venda.cn_servico is 'Identificador do serviço.';
+comment on column fat_item_venda.an_descr is 'Descrição do registro.';
+comment on column fat_item_venda.ca_unidade is 'Sigla da unidade de medida.';
+comment on column fat_item_venda.qt_quantidade is 'Quantidade do item.';
+comment on column fat_item_venda.vl_unitario is 'Preço unitário aplicado ao item.';
+comment on column fat_item_venda.vl_custo is 'Custo unitário.';
+comment on column fat_item_venda.vl_total is 'Valor total.';
+comment on column fat_item_venda.qt_tempo_segundos is 'Tempo acumulado de execução em segundos.';
+comment on column fat_item_venda.dt_inc is 'Data e hora de inclusão.';
+comment on column fat_item_venda.dt_alt is 'Data e hora da última alteração.';

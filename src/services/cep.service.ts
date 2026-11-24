@@ -1,7 +1,7 @@
 import { ApiError } from '../interfaces/error.js'
 
 export class CepService {
-  static async fetchCep(cep: string) {
+  static async consultarCep(cep: string) {
     let response: Response
     try {
       response = await fetch(`https://viacep.com.br/ws/${cep}/json/`, {

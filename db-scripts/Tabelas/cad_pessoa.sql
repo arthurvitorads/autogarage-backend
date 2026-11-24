@@ -28,3 +28,20 @@ create unique index if not exists idx_cad_pessoa_2
 
 create index if not exists idx_cad_pessoa_3
   on cad_pessoa (dt_inc);
+
+comment on column cad_pessoa.cn_pessoa is 'Identificador da pessoa.';
+comment on column cad_pessoa.ca_tipo is 'PF para pessoa física ou PJ para pessoa jurídica.';
+comment on column cad_pessoa.an_nome is 'Nome da pessoa física.';
+comment on column cad_pessoa.ca_cpf is 'CPF da pessoa física.';
+comment on column cad_pessoa.ca_cnpj is 'CNPJ da pessoa jurídica.';
+comment on column cad_pessoa.an_razao_social is 'Razão social.';
+comment on column cad_pessoa.an_nome_fantasia is 'Nome fantasia.';
+comment on column cad_pessoa.an_email is 'Endereço de e-mail.';
+comment on column cad_pessoa.an_telefone is 'Telefone com DDD.';
+comment on column cad_pessoa.bo_categ_cliente is 'Indica se a pessoa está cadastrada como cliente.';
+comment on column cad_pessoa.bo_categ_func is 'Indica se a pessoa está cadastrada como funcionário.';
+comment on column cad_pessoa.an_cargo is 'Cargo do funcionário.';
+comment on column cad_pessoa.nm_comissao_func is 'Percentual de comissão do funcionário.';
+comment on column cad_pessoa.bo_sts_reg is 'Indica se o registro está ativo.';
+comment on column cad_pessoa.dt_inc is 'Data e hora de inclusão.';
+comment on column cad_pessoa.dt_alt is 'Data e hora da última alteração.';

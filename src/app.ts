@@ -7,10 +7,10 @@ import helmet from '@fastify/helmet'
 import rateLimit from '@fastify/rate-limit'
 
 import { AuthController } from './controllers/auth.controller.js'
-import { UserController } from './controllers/user.controller.js'
+import { UsuarioController } from './controllers/usuario.controller.js'
 import { PerfilController } from './controllers/perfil.controller.js'
-import { OrderController } from './controllers/order.controller.js'
-import { PersonController } from './controllers/person.controller.js'
+import { OrdemServicoController } from './controllers/ordem-servico.controller.js'
+import { PessoaController } from './controllers/pessoa.controller.js'
 
 import { AuthMiddleware } from './middlewares/auth.middleware.js'
 
@@ -19,37 +19,37 @@ import { ApiResponse } from './http/api-response.js'
 import { ApiRouter } from './http/api-router.js'
 
 import { AuthRoutes } from './routes/auth.route.js'
-import { UserRoutes } from './routes/user.route.js'
+import { UsuarioRoutes } from './routes/usuario.route.js'
 import { PerfilRoutes } from './routes/perfil.route.js'
-import { OrderRoutes } from './routes/order.route.js'
-import { PersonRoutes } from './routes/person.route.js'
-import { AddressRoutes } from './routes/address.route.js'
-import { AddressController } from './controllers/address.controller.js'
-import type { AddressService } from './services/address.service.js'
+import { OrdemServicoRoutes } from './routes/ordem-servico.route.js'
+import { PessoaRoutes } from './routes/pessoa.route.js'
+import { EnderecoRoutes } from './routes/endereco.route.js'
+import { EnderecoController } from './controllers/endereco.controller.js'
+import type { EnderecoService } from './services/endereco.service.js'
 
 import type { AuthService } from './services/auth.service.js'
-import type { UserService } from './services/user.service.js'
+import type { UsuarioService } from './services/usuario.service.js'
 import type { PerfilService } from './services/perfil.service.js'
-import type { OrderService } from './services/order.service.js'
-import type { PersonService } from './services/person.service.js'
-import type { CatalogService } from './services/catalog.service.js'
-import { CatalogController } from './controllers/catalog.controller.js'
-import { CatalogRoutes } from './routes/catalog.route.js'
+import type { OrdemServicoService } from './services/ordem-servico.service.js'
+import type { PessoaService } from './services/pessoa.service.js'
+import type { CatalogoService } from './services/catalogo.service.js'
+import { CatalogoController } from './controllers/catalogo.controller.js'
+import { CatalogoRoutes } from './routes/catalogo.route.js'
 
 export class Application {
   readonly server
 
   constructor(
     auth: AuthService,
-    users: UserService,
+    usuarios: UsuarioService,
     perfil: PerfilService,
-    order: OrderService,
-    person: PersonService,
-    catalog: CatalogService,
+    ordemServico: OrdemServicoService,
+    pessoa: PessoaService,
+    catalogo: CatalogoService,
     faturamento: FaturamentoService,
-    address: AddressService,
+    endereco: EnderecoService,
     logger = true,
-    registrationRoutes: readonly { register(router: ApiRouter): void }[] = [],
+    rotasCadastro: readonly { register(router: ApiRouter): void }[] = [],
   ) {
     this.server = Fastify({ logger })
     this.server.setErrorHandler(ApiResponse.error)
@@ -68,13 +68,13 @@ export class Application {
       const router = new ApiRouter(server, new AuthMiddleware(auth))
 
       new AuthRoutes(new AuthController(auth)).register(router)
-      new UserRoutes(new UserController(users)).register(router)
+      new UsuarioRoutes(new UsuarioController(usuarios)).register(router)
       new PerfilRoutes(new PerfilController(perfil)).register(router)
-      new OrderRoutes(new OrderController(order)).register(router)
-      new PersonRoutes(new PersonController(person)).register(router)
-      new AddressRoutes(new AddressController(address)).register(router)
-      new CatalogRoutes(new CatalogController(catalog)).register(router)
-      for (const routes of registrationRoutes) routes.register(router)
+      new OrdemServicoRoutes(new OrdemServicoController(ordemServico)).register(router)
+      new PessoaRoutes(new PessoaController(pessoa)).register(router)
+      new EnderecoRoutes(new EnderecoController(endereco)).register(router)
+      new CatalogoRoutes(new CatalogoController(catalogo)).register(router)
+      for (const routes of rotasCadastro) routes.register(router)
       new FaturamentoRoutes(new FaturamentoController(faturamento)).register(router)
     })
   }

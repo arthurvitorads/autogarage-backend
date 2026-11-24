@@ -12,7 +12,7 @@ Este documento vale para o frontend e o backend. As instruções explícitas do 
 
 ## Nomenclatura e tipagem
 
-- Novas variáveis, parâmetros, funções e models de formulário devem ter nomes em inglês e descritivos.
+- Use nomes descritivos. No backend, use português para as entidades de negócio, os arquivos e as operações, mantendo os sufixos das camadas. Use `view` para listagens, `domain` para domínios, `param` para consultas de apoio e `manut` para inclusão e alteração.
 - Use camelCase para variáveis e funções, PascalCase para classes e interfaces, prefixo I para interfaces e T para aliases de tipos, seguindo os exemplos existentes.
 - As interfaces que representam tabelas podem manter o nome original: IAdmUsuario, IAdmProduto, ICadPessoa, IAdmOrdemServico e IAdmVenda.
 - Preserve os nomes das tabelas, colunas e propriedades dos contratos de API. Campos como cn_usuario, an_nome, bo_sts_reg, dt_inc e dt_alt não devem ser traduzidos.

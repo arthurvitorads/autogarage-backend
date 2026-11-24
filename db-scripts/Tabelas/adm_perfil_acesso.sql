@@ -10,3 +10,7 @@ create table if not exists adm_perfil_acesso (
     check (ca_modulo in ('GERAL', 'CADASTROS', 'ORDEM_SERVICO', 'FATURAMENTO', 'RELATORIOS', 'ADMINISTRACAO')),
   constraint ck_adm_perfil_acesso_2 check (nu_nivel in (1, 2, 3))
 );
+
+comment on column adm_perfil_acesso.cn_perfil is 'Identificador do perfil de acesso.';
+comment on column adm_perfil_acesso.ca_modulo is 'Código do módulo do sistema.';
+comment on column adm_perfil_acesso.nu_nivel is 'Nível de acesso ao módulo.';

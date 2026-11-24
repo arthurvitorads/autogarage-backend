@@ -14,7 +14,7 @@ export class FaturamentoModel {
     }
   }
 
-  static toResponse(venda: FatVenda & { itens: FatItemVenda[] }) {
+  static paraResposta(venda: FatVenda & { itens: FatItemVenda[] }) {
     const { ca_id_firebase, ca_chave_requisicao, ca_hash_requisicao, ...dados } = venda
     return {
       ...dados,

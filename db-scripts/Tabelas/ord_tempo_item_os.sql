@@ -21,3 +21,12 @@ create index if not exists idx_ord_tempo_item_os_1
 
 create unique index if not exists idx_ord_tempo_item_os_2
   on ord_tempo_item_os (cn_item) where dt_fim is null;
+
+comment on column ord_tempo_item_os.cn_tempo_item_os is 'Identificador do intervalo de execução.';
+comment on column ord_tempo_item_os.cn_item is 'Identificador do item da ordem de serviço.';
+comment on column ord_tempo_item_os.dt_inicio is 'Data e hora de início.';
+comment on column ord_tempo_item_os.dt_fim is 'Data e hora de encerramento do intervalo.';
+comment on column ord_tempo_item_os.qt_segundos is 'Duração do intervalo em segundos inteiros.';
+comment on column ord_tempo_item_os.ca_encerramento is 'Ação que encerrou o intervalo de execução.';
+comment on column ord_tempo_item_os.dt_inc is 'Data e hora de inclusão.';
+comment on column ord_tempo_item_os.dt_alt is 'Data e hora da última alteração.';

@@ -6,8 +6,9 @@ export class AuthRoutes {
   constructor(private readonly controller: AuthController) {}
 
   register(router: ApiRouter) {
-    router.post('/auth/me', this.controller.me, null, 200, {
+    router.post('/auth/login', this.controller.me, null, 200, {
       rateLimit: { max: 3, timeWindow: 30_000 },
     })
+    router.post('/auth/me', this.controller.me, null, 200)
   }
 }

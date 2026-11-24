@@ -7,21 +7,21 @@ import { ApiError } from '../interfaces/error.js'
 export class FaturamentoService {
   constructor(private readonly faturamento: IFaturamentoRepository) {}
 
-  async list(page: number, limit: number, search: string) {
-    const { vendas, total } = await this.faturamento.list(page, limit, search)
+  async view(page: number, limit: number, search: string) {
+    const { vendas, total } = await this.faturamento.view(page, limit, search)
     return ApiResponse.page({
-      dados: vendas.map(FaturamentoModel.toResponse),
+      dados: vendas.map(FaturamentoModel.paraResposta),
       pagination: ApiResponse.pagination(page, limit, total),
     })
   }
 
-  async findById(id: bigint) {
-    const venda = await this.faturamento.findById(id)
+  async detalhar(id: bigint) {
+    const venda = await this.faturamento.detalhar(id)
     if (!venda) throw new ApiError(404, 'Venda não encontrada.')
-    return FaturamentoModel.toResponse(venda)
+    return FaturamentoModel.paraResposta(venda)
   }
 
-  async create(values: IManutVenda, uid: string) {
-    return FaturamentoModel.toResponse(await this.faturamento.create(values, uid))
+  async manutInc(values: IManutVenda, uid: string) {
+    return FaturamentoModel.paraResposta(await this.faturamento.manutInc(values, uid))
   }
 }

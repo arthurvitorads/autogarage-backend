@@ -11,6 +11,9 @@ create table if not exists ord_item_os (
   vl_total          numeric(20,2) not null check (vl_total = round(qt_quantidade * vl_unitario, 2)),
   dt_inc            timestamptz not null default now(),
   dt_alt            timestamptz not null default now(),
+  ca_status_servico text not null default 'PENDENTE',
+  qt_tempo_segundos integer not null default 0,
+  dt_inicio_tempo   timestamptz,
   constraint fk_ord_item_os_1 foreign key (cn_ordem_servico) references ord_ordem_servico (cn_ordem_servico) on delete restrict on update cascade,
   constraint fk_ord_item_os_2 foreign key (cn_produto) references cad_produto (cn_produto) on delete restrict on update cascade,
   constraint fk_ord_item_os_3 foreign key (cn_servico) references cad_servico (cn_servico) on delete restrict on update cascade,
@@ -28,3 +31,22 @@ create index if not exists idx_ord_item_os_2
 
 create index if not exists idx_ord_item_os_3
   on ord_item_os (cn_servico);
+
+create index if not exists idx_ord_item_os_4
+  on ord_item_os (ca_status_servico, qt_tempo_segundos);
+
+comment on column ord_item_os.cn_item is 'Identificador do item da ordem de serviço.';
+comment on column ord_item_os.cn_ordem_servico is 'Identificador da ordem de serviço.';
+comment on column ord_item_os.ca_tipo is 'Tipo do item da ordem, PRODUTO ou SERVICO.';
+comment on column ord_item_os.cn_produto is 'Identificador do produto.';
+comment on column ord_item_os.cn_servico is 'Identificador do serviço.';
+comment on column ord_item_os.an_descr is 'Descrição do registro.';
+comment on column ord_item_os.ca_unidade is 'Sigla da unidade de medida.';
+comment on column ord_item_os.qt_quantidade is 'Quantidade do item.';
+comment on column ord_item_os.vl_unitario is 'Preço unitário aplicado ao item.';
+comment on column ord_item_os.vl_total is 'Valor total.';
+comment on column ord_item_os.dt_inc is 'Data e hora de inclusão.';
+comment on column ord_item_os.dt_alt is 'Data e hora da última alteração.';
+comment on column ord_item_os.ca_status_servico is 'Situação da execução do serviço.';
+comment on column ord_item_os.qt_tempo_segundos is 'Tempo acumulado de execução em segundos.';
+comment on column ord_item_os.dt_inicio_tempo is 'Início do intervalo de execução aberto.';

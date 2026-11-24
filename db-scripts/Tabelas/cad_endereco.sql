@@ -35,3 +35,16 @@ alter table cad_endereco
   references end_estados (cn_estado)
   on delete restrict
   on update cascade;
+
+comment on column cad_endereco.cn_endereco is 'Identificador do endereço.';
+comment on column cad_endereco.cn_pessoa is 'Identificador da pessoa.';
+comment on column cad_endereco.ca_cep is 'Código de endereçamento postal.';
+comment on column cad_endereco.an_logradouro is 'Nome do logradouro.';
+comment on column cad_endereco.an_numero is 'Número textual do endereço.';
+comment on column cad_endereco.an_complemento is 'Complemento do endereço.';
+comment on column cad_endereco.an_bairro is 'Bairro.';
+comment on column cad_endereco.an_cidade is 'Município.';
+comment on column cad_endereco.cn_estado is 'Identificador do estado.';
+comment on column cad_endereco.bo_sts_reg is 'Indica se o registro está ativo.';
+comment on column cad_endereco.dt_inc is 'Data e hora de inclusão.';
+comment on column cad_endereco.dt_alt is 'Data e hora da última alteração.';

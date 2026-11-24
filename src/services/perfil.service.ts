@@ -10,47 +10,47 @@ import { moduleAccess, type TModuleAccess } from '../interfaces/access.js'
 export class PerfilService {
   constructor(private readonly perfil: IPerfilRepository) {}
 
-  async access(id: bigint) {
-    const profile = await this.perfil.findAccess(id)
+  async consultarAcessos(id: bigint) {
+    const profile = await this.perfil.consultarAcessos(id)
     if (!profile) throw new ApiError(404, 'Perfil não encontrado.')
     return moduleAccess(profile.acessos)
   }
 
-  async saveAccess(id: bigint, levels: TModuleAccess) {
-    if (!(await this.perfil.findById(id))) throw new ApiError(404, 'Perfil não encontrado.')
-    return moduleAccess(await this.perfil.saveAccess(id, levels))
+  async manutAcessos(id: bigint, levels: TModuleAccess) {
+    if (!(await this.perfil.detalhar(id))) throw new ApiError(404, 'Perfil não encontrado.')
+    return moduleAccess(await this.perfil.manutAcessos(id, levels))
   }
 
-  async list(page: number, limit: number, search: string) {
-    const { perfil, total } = await this.perfil.list(page, limit, search)
+  async view(page: number, limit: number, search: string) {
+    const { perfil, total } = await this.perfil.view(page, limit, search)
 
     return ApiResponse.page({
-      dados: perfil.map(PerfilModel.toResponse),
+      dados: perfil.map(PerfilModel.paraResposta),
       pagination: ApiResponse.pagination(page, limit, total),
     })
   }
 
-  async paramList() {
-    const perfil = await this.perfil.paramList()
+  async domain() {
+    const perfil = await this.perfil.domain()
 
-    return perfil.map(PerfilModel.toParamResponse)
+    return perfil.map(PerfilModel.paraParam)
   }
 
-  async create(values: IManutPerfil) {
+  async manutInc(values: IManutPerfil) {
     try {
-      return PerfilModel.toResponse(await this.perfil.create(values))
+      return PerfilModel.paraResposta(await this.perfil.manutInc(values))
     } catch (error) {
       throw error
     }
   }
 
-  async update(id: bigint, values: IManutPerfil) {
-    const perfil = await this.perfil.findById(id)
+  async manutAlt(id: bigint, values: IManutPerfil) {
+    const perfil = await this.perfil.detalhar(id)
 
     if (!perfil) throw new ApiError(404, 'Perfil não encontrado.')
 
     try {
-      return PerfilModel.toResponse(await this.perfil.update(id, values))
+      return PerfilModel.paraResposta(await this.perfil.manutAlt(id, values))
     } catch (error) {
       throw error
     }

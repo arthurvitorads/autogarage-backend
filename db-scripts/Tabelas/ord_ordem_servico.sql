@@ -11,6 +11,7 @@ create table if not exists ord_ordem_servico (
   dt_finalizacao timestamptz,
   dt_cancelamento timestamptz,
   an_responsavel    text not null default '',
+  cn_responsavel    bigint,
   an_placa          text not null check (an_placa ~ '^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$'),
   an_marca          text not null,
   an_modelo         text not null,
@@ -23,6 +24,7 @@ create table if not exists ord_ordem_servico (
   dt_alt            timestamptz not null default now(),
   constraint fk_ord_ordem_servico_1 foreign key (cn_pessoa) references cad_pessoa (cn_pessoa) on delete restrict on update cascade,
   constraint fk_ord_ordem_servico_2 foreign key (cn_status_os) references ord_status_os (cn_status_os) on delete restrict on update cascade,
+  constraint ord_ordem_servico_cn_responsavel_fkey foreign key (cn_responsavel) references cad_pessoa (cn_pessoa) on delete restrict on update cascade,
   constraint ck_ord_ordem_servico_1 check (dt_previsao is null or dt_previsao >= dt_entrada)
 );
 
@@ -31,3 +33,33 @@ create index if not exists idx_ord_ordem_servico_1
 
 create index if not exists idx_ord_ordem_servico_2
   on ord_ordem_servico (cn_status_os);
+
+create index if not exists idx_ord_ordem_servico_responsavel
+  on ord_ordem_servico (cn_responsavel);
+
+create index if not exists idx_ord_ordem_servico_placa
+  on ord_ordem_servico (an_placa, dt_entrada);
+
+comment on column ord_ordem_servico.cn_ordem_servico is 'Identificador da ordem de serviço.';
+comment on column ord_ordem_servico.nu_numero is 'Número sequencial exibido ao usuário.';
+comment on column ord_ordem_servico.cn_pessoa is 'Identificador da pessoa.';
+comment on column ord_ordem_servico.cn_status_os is 'Identificador da classificação da ordem de serviço, mapeado para cn_classificacao_os no Prisma.';
+comment on column ord_ordem_servico.ca_status is 'Situação operacional da ordem de serviço.';
+comment on column ord_ordem_servico.an_motivo_cancelamento is 'Motivo de cancelamento da ordem.';
+comment on column ord_ordem_servico.dt_inicio is 'Data e hora de início.';
+comment on column ord_ordem_servico.dt_finalizacao is 'Data e hora de finalização da ordem.';
+comment on column ord_ordem_servico.dt_cancelamento is 'Data e hora de cancelamento da ordem.';
+comment on column ord_ordem_servico.dt_entrada is 'Data e hora de entrada do veículo.';
+comment on column ord_ordem_servico.dt_previsao is 'Previsão de entrega do veículo.';
+comment on column ord_ordem_servico.an_responsavel is 'Nome do responsável registrado na ordem.';
+comment on column ord_ordem_servico.cn_responsavel is 'Identificador da pessoa responsável pela ordem.';
+comment on column ord_ordem_servico.an_placa is 'Placa do veículo sem separadores.';
+comment on column ord_ordem_servico.an_marca is 'Marca do veículo.';
+comment on column ord_ordem_servico.an_modelo is 'Modelo do veículo.';
+comment on column ord_ordem_servico.nu_ano is 'Ano do veículo.';
+comment on column ord_ordem_servico.an_cor is 'Cor do veículo.';
+comment on column ord_ordem_servico.qt_quilometragem is 'Quilometragem informada do veículo.';
+comment on column ord_ordem_servico.an_solicitacao is 'Solicitação do cliente.';
+comment on column ord_ordem_servico.an_obs is 'Observações.';
+comment on column ord_ordem_servico.dt_inc is 'Data e hora de inclusão.';
+comment on column ord_ordem_servico.dt_alt is 'Data e hora da última alteração.';
