@@ -10,6 +10,18 @@ import { MAX_ORDER_EVIDENCES } from '../interfaces/ordem-servico.js'
 import { ApiError } from '../interfaces/error.js'
 import { TempoItemOrdemServicoRepository } from './tempo-item-ordem-servico.repository.js'
 
+const selecionarResponsavel = {
+  cn_pessoa: true,
+  an_nome: true,
+  an_razao_social: true,
+  an_cargo: true,
+} satisfies Prisma.CadPessoaSelect
+
+const incluirResponsaveis = {
+  orderBy: { cn_pessoa: 'asc' },
+  select: { pessoa: { select: selecionarResponsavel } },
+} satisfies Prisma.OrdOrdemServico$responsaveisArgs
+
 export class OrdemServicoRepository {
   constructor(private readonly db: PrismaClient) {}
 
@@ -52,13 +64,15 @@ export class OrdemServicoRepository {
           ],
         }
       : {}
-    if (filters.status) where.ca_status = filters.status
+    if (filters.status?.length) where.ca_status = { in: filters.status }
     if (filters.billable) {
       where.ca_status = 'FINALIZADO'
       where.itens = { some: {} }
       where.venda = { is: null }
     }
-    if (filters.classificacao) where.cn_classificacao_os = filters.classificacao
+    if (filters.classificacao?.length) where.cn_classificacao_os = { in: filters.classificacao }
+    if (filters.marca?.length) where.an_marca = { in: filters.marca, mode: 'insensitive' }
+    if (filters.modelo?.length) where.an_modelo = { in: filters.modelo, mode: 'insensitive' }
     if (filters.inicio || filters.fim)
       where.dt_entrada = {
         ...(filters.inicio ? { gte: filters.inicio } : {}),
@@ -70,6 +84,7 @@ export class OrdemServicoRepository {
         include: {
           venda: { select: { cn_venda: true } },
           pessoa: true,
+          responsaveis: incluirResponsaveis,
           itens: { orderBy: { cn_item: 'asc' } },
         },
         skip: (page - 1) * limit,
@@ -84,32 +99,86 @@ export class OrdemServicoRepository {
   paramFuncionarios() {
     return this.db.cadPessoa.findMany({
       where: { bo_sts_reg: true, bo_categ_func: true },
-      select: { cn_pessoa: true, an_nome: true, an_razao_social: true },
+      select: selecionarResponsavel,
       orderBy: [{ an_nome: 'asc' }, { an_razao_social: 'asc' }],
     })
   }
 
-  consultarPlaca(placa: string) {
-    return this.db.ordOrdemServico.findFirst({
+  async consultarPlaca(placa: string) {
+    const veiculo = await this.db.cadVeiculo.findUnique({
       where: { an_placa: placa },
-      orderBy: [{ dt_entrada: 'desc' }, { cn_ordem_servico: 'desc' }],
-      select: { an_marca: true, an_modelo: true, nu_ano: true, an_cor: true },
+      select: {
+        nu_ano: true,
+        an_cor: true,
+        modelo: { select: { an_descr: true, marca: { select: { an_descr: true } } } },
+      },
     })
+    if (!veiculo) return null
+    return {
+      an_marca: veiculo.modelo.marca.an_descr,
+      an_modelo: veiculo.modelo.an_descr,
+      nu_ano: veiculo.nu_ano,
+      an_cor: veiculo.an_cor,
+    }
+  }
+
+  async paramVeiculos() {
+    const marcas = await this.db.cadMarcaVeiculo.findMany({
+      orderBy: { an_descr: 'asc' },
+      select: {
+        an_descr: true,
+        modelos: { select: { an_descr: true }, orderBy: { an_descr: 'asc' } },
+      },
+    })
+    return marcas.map((marca) => ({
+      an_marca: marca.an_descr,
+      modelos: marca.modelos.map((modelo) => modelo.an_descr),
+    }))
+  }
+
+  private async gravarVeiculo(transaction: Prisma.TransactionClient, dados: IManutOrdemServico) {
+    const ca_marca = dados.an_marca.toLowerCase()
+    const marca = await transaction.cadMarcaVeiculo.upsert({
+      where: { ca_chave: ca_marca },
+      create: { an_descr: dados.an_marca, ca_chave: ca_marca },
+      update: {},
+    })
+    const chaveModelo = {
+      cn_marca_veiculo: marca.cn_marca_veiculo,
+      ca_chave: dados.an_modelo.toLowerCase(),
+    }
+    const modelo = await transaction.cadModeloVeiculo.upsert({
+      where: { cn_marca_veiculo_ca_chave: chaveModelo },
+      create: { ...chaveModelo, an_descr: dados.an_modelo },
+      update: {},
+    })
+    const atributos = {
+      cn_modelo_veiculo: modelo.cn_modelo_veiculo,
+      nu_ano: dados.nu_ano,
+      an_cor: dados.an_cor,
+    }
+    await transaction.cadVeiculo.upsert({
+      where: { an_placa: dados.an_placa },
+      create: { an_placa: dados.an_placa, ...atributos },
+      update: { ...atributos, dt_alt: new Date() },
+    })
+    return { an_marca: marca.an_descr, an_modelo: modelo.an_descr }
   }
 
   viewEvidencias(id: bigint) {
     return this.db.ordEvidenciaOs.findMany({
-      where: { cn_ordem_servico: id },
+      where: { cn_ordem: id },
       orderBy: { cn_evidencia: 'asc' },
     })
   }
 
   detalhar(id: bigint) {
     return this.db.ordOrdemServico.findUnique({
-      where: { cn_ordem_servico: id },
+      where: { cn_ordem: id },
       include: {
         venda: { select: { cn_venda: true } },
         pessoa: true,
+        responsaveis: incluirResponsaveis,
         itens: { orderBy: { cn_item: 'asc' } },
       },
     })
@@ -117,7 +186,7 @@ export class OrdemServicoRepository {
 
   private async buscarOrdemEditavel(transaction: Prisma.TransactionClient, id: bigint) {
     const ordem = await transaction.ordOrdemServico.findUnique({
-      where: { cn_ordem_servico: id },
+      where: { cn_ordem: id },
     })
     if (!ordem) throw new ApiError(404, 'Ordem de serviço não encontrada.')
     if (ordem.ca_status === 'FINALIZADO' || ordem.ca_status === 'CANCELADO')
@@ -136,7 +205,7 @@ export class OrdemServicoRepository {
           throw new ApiError(409, 'Ação indisponível para o status atual da ordem.')
         const agora = new Date()
         const servicos = await transaction.ordItemOs.findMany({
-          where: { cn_ordem_servico: id, ca_tipo: 'SERVICO' },
+          where: { cn_ordem: id, ca_tipo: 'SERVICO' },
         })
         for (const item of servicos) {
           if (dados.acao === 'INICIAR' && item.ca_status_servico === 'PENDENTE')
@@ -155,11 +224,12 @@ export class OrdemServicoRepository {
                   an_motivo_cancelamento: dados.an_motivo_cancelamento,
                 }
         return transaction.ordOrdemServico.update({
-          where: { cn_ordem_servico: id },
+          where: { cn_ordem: id },
           data: { ...data, dt_alt: agora },
           include: {
             venda: { select: { cn_venda: true } },
             pessoa: true,
+            responsaveis: incluirResponsaveis,
             itens: true,
           },
         })
@@ -171,7 +241,7 @@ export class OrdemServicoRepository {
   manutOrdemServico(id: bigint | null, dados: IManutOrdemServico) {
     return this.db.$transaction(
       async (transaction) => {
-        const { cn_responsavel, evidencias = [], ...data } = dados
+        const { cn_responsaveis, evidencias = [], ...data } = dados
         const existente = id === null ? null : await this.buscarOrdemEditavel(transaction, id)
         const pessoa = await transaction.cadPessoa.findUnique({
           where: { cn_pessoa: data.cn_pessoa },
@@ -184,30 +254,58 @@ export class OrdemServicoRepository {
         if (!status?.bo_sts_reg) throw new ApiError(400, 'Selecione uma classificação ativa.')
 
         let nomeResponsavel = existente?.an_responsavel ?? ''
-        if (cn_responsavel === null) nomeResponsavel = ''
-        if (cn_responsavel != null && cn_responsavel !== existente?.cn_responsavel) {
-          const responsavel = await transaction.cadPessoa.findFirst({
-            where: { cn_pessoa: cn_responsavel, bo_sts_reg: true, bo_categ_func: true },
-            select: { an_nome: true, an_razao_social: true },
+        if (cn_responsaveis !== undefined) {
+          const anteriores =
+            id === null
+              ? []
+              : await transaction.ordResponsavelOs.findMany({
+                  where: { cn_ordem: id },
+                  select: { cn_pessoa: true },
+                })
+          const pessoas = await transaction.cadPessoa.findMany({
+            where: {
+              cn_pessoa: { in: cn_responsaveis },
+              OR: [
+                { bo_sts_reg: true, bo_categ_func: true },
+                { cn_pessoa: { in: anteriores.map((pessoa) => pessoa.cn_pessoa) } },
+              ],
+            },
+            select: selecionarResponsavel,
+            orderBy: { an_nome: 'asc' },
           })
-          if (!responsavel) throw new ApiError(400, 'Selecione um funcionário ativo.')
-          nomeResponsavel = responsavel.an_nome ?? responsavel.an_razao_social ?? ''
+          if (pessoas.length !== cn_responsaveis.length)
+            throw new ApiError(400, 'Selecione funcionários ativos como responsáveis.')
+          nomeResponsavel = pessoas
+            .map((pessoa) => pessoa.an_nome ?? pessoa.an_razao_social ?? '')
+            .join(', ')
         }
 
+        const veiculo = await this.gravarVeiculo(transaction, dados)
         const dadosOrdem = {
           ...data,
-          ...(cn_responsavel === undefined ? {} : { cn_responsavel }),
+          ...veiculo,
+          ...(cn_responsaveis === undefined ? {} : { cn_responsavel: null }),
           an_responsavel: nomeResponsavel,
         }
-        const order = id === null
-          ? await transaction.ordOrdemServico.create({ data: dadosOrdem })
-          : await transaction.ordOrdemServico.update({
-              where: { cn_ordem_servico: id },
-              data: { ...dadosOrdem, dt_alt: new Date() },
+        const order =
+          id === null
+            ? await transaction.ordOrdemServico.create({ data: dadosOrdem })
+            : await transaction.ordOrdemServico.update({
+                where: { cn_ordem: id },
+                data: { ...dadosOrdem, dt_alt: new Date() },
+              })
+
+        if (cn_responsaveis !== undefined) {
+          const where = { cn_ordem: order.cn_ordem }
+          if (id !== null) await transaction.ordResponsavelOs.deleteMany({ where })
+          if (cn_responsaveis.length)
+            await transaction.ordResponsavelOs.createMany({
+              data: cn_responsaveis.map((cn_pessoa) => ({ ...where, cn_pessoa })),
             })
+        }
 
         if (evidencias.length) {
-          const where = { cn_ordem_servico: order.cn_ordem_servico }
+          const where = { cn_ordem: order.cn_ordem }
           const count = await transaction.ordEvidenciaOs.count({ where })
           if (count + evidencias.length > MAX_ORDER_EVIDENCES)
             throw new ApiError(400, 'Uma ordem pode ter até cinco imagens.')
@@ -217,10 +315,11 @@ export class OrdemServicoRepository {
         }
 
         return transaction.ordOrdemServico.findUniqueOrThrow({
-          where: { cn_ordem_servico: order.cn_ordem_servico },
+          where: { cn_ordem: order.cn_ordem },
           include: {
             venda: { select: { cn_venda: true } },
             pessoa: true,
+            responsaveis: incluirResponsaveis,
             itens: { orderBy: { cn_item: 'asc' } },
           },
         })
@@ -237,7 +336,7 @@ export class OrdemServicoRepository {
           codigoItem === null
             ? null
             : await transaction.ordItemOs.findFirst({
-                where: { cn_item: codigoItem, cn_ordem_servico: codigoOrdem },
+                where: { cn_item: codigoItem, cn_ordem: codigoOrdem },
               })
         if (codigoItem !== null && !existente)
           throw new ApiError(404, 'Item não encontrado nesta ordem.')
@@ -294,7 +393,7 @@ export class OrdemServicoRepository {
           throw new ApiError(400, 'Total do item excede o limite permitido.')
         const data = {
           ...dados,
-          cn_ordem_servico: codigoOrdem,
+          cn_ordem: codigoOrdem,
           an_descr: descricao,
           ca_unidade: unidade,
           vl_total: total,
@@ -307,13 +406,13 @@ export class OrdemServicoRepository {
                 data: { ...data, dt_alt: new Date() },
               })
         const soma = await transaction.ordItemOs.aggregate({
-          where: { cn_ordem_servico: codigoOrdem },
+          where: { cn_ordem: codigoOrdem },
           _sum: { vl_total: true },
         })
         if (soma._sum.vl_total?.mul(100).greaterThan(Number.MAX_SAFE_INTEGER))
           throw new ApiError(400, 'Total da ordem excede o limite permitido.')
         await transaction.ordOrdemServico.update({
-          where: { cn_ordem_servico: codigoOrdem },
+          where: { cn_ordem: codigoOrdem },
           data: { dt_alt: new Date() },
         })
         if (
@@ -333,7 +432,7 @@ export class OrdemServicoRepository {
       async (transaction) => {
         await this.buscarOrdemEditavel(transaction, codigoOrdem)
         const item = await transaction.ordItemOs.findFirst({
-          where: { cn_item: codigoItem, cn_ordem_servico: codigoOrdem },
+          where: { cn_item: codigoItem, cn_ordem: codigoOrdem },
         })
         if (!item) throw new ApiError(404, 'Item não encontrado nesta ordem.')
         if (item.ca_tipo === 'SERVICO' && item.ca_status_servico !== 'PENDENTE')
@@ -348,7 +447,7 @@ export class OrdemServicoRepository {
           })
         await transaction.ordItemOs.delete({ where: { cn_item: codigoItem } })
         await transaction.ordOrdemServico.update({
-          where: { cn_ordem_servico: codigoOrdem },
+          where: { cn_ordem: codigoOrdem },
           data: { dt_alt: new Date() },
         })
         return { cn_item: codigoItem.toString() }
@@ -356,18 +455,23 @@ export class OrdemServicoRepository {
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     )
   }
-  manutTempoItem(codigoOrdem: bigint, codigoItem: bigint, acao: 'INICIAR' | 'PAUSAR' | 'FINALIZAR') {
+  manutTempoItem(
+    codigoOrdem: bigint,
+    codigoItem: bigint,
+    acao: 'INICIAR' | 'PAUSAR' | 'FINALIZAR',
+  ) {
     return this.db.$transaction(
       async (transaction) => {
         const ordem = await this.buscarOrdemEditavel(transaction, codigoOrdem)
         if (ordem.ca_status !== 'EM_ANDAMENTO')
           throw new ApiError(409, 'Inicie a ordem antes de contar o tempo do serviço.')
         const item = await transaction.ordItemOs.findFirst({
-          where: { cn_item: codigoItem, cn_ordem_servico: codigoOrdem },
+          where: { cn_item: codigoItem, cn_ordem: codigoOrdem },
         })
         if (!item || item.ca_tipo !== 'SERVICO')
           throw new ApiError(404, 'Item de serviço não encontrado nesta ordem.')
-        if (acao === 'INICIAR') return TempoItemOrdemServicoRepository.start(transaction, item, new Date())
+        if (acao === 'INICIAR')
+          return TempoItemOrdemServicoRepository.start(transaction, item, new Date())
         if (
           (acao === 'PAUSAR' && item.ca_status_servico !== 'EM_ANDAMENTO') ||
           (acao === 'FINALIZAR' && !['EM_ANDAMENTO', 'PAUSADO'].includes(item.ca_status_servico))
@@ -388,6 +492,7 @@ export type IOrdemServicoRepository = Pick<
   | 'detalhar'
   | 'paramFuncionarios'
   | 'consultarPlaca'
+  | 'paramVeiculos'
   | 'viewEvidencias'
   | 'manutOrdemServico'
   | 'manutMovimentar'

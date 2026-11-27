@@ -8,7 +8,8 @@ export class UnidadeController {
 
   view = () => this.service.view()
 
-  manutInc = (request: FastifyRequest) => this.service.manutInc(UnidadeValidator.parse(request.body))
+  manutInc = (request: FastifyRequest) =>
+    this.service.manutInc(UnidadeValidator.parse(request.body))
 
   manutAlt = (request: FastifyRequest) =>
     this.service.manutAlt(

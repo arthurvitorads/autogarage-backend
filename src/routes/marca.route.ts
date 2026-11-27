@@ -6,6 +6,8 @@ export class MarcaRoutes {
 
   register(router: ApiRouter) {
     router.post('/marcas/view', this.controller.view, [['CADASTROS', 2]], 200)
-    router.manut('/marcas/manut', 'cn_marca', this.controller.manutInc, this.controller.manutAlt, [['CADASTROS', 1]])
+    router.manut('/marcas/manut', 'cn_marca', this.controller.manutInc, this.controller.manutAlt, [
+      ['CADASTROS', 1],
+    ])
   }
 }

@@ -20,10 +20,19 @@ export class OrdemServicoValidator {
 
   static validarFiltros(query: unknown): IFiltroOrdemServico {
     const data = Data.object(query ?? {})
-    const status = data.status ? (Data.text(data.status, 'o status') as TStatusOrdemServico) : undefined
-    if (status && !['ABERTO', 'EM_ANDAMENTO', 'FINALIZADO', 'CANCELADO'].includes(status))
-      throw new ApiError(400, 'Status inválido.')
-    const classificacao = data.classificacao ? Data.id(data.classificacao) : undefined
+    const status = this.filtroLista(data.status).map((value) => {
+      if (
+        value !== 'ABERTO' &&
+        value !== 'EM_ANDAMENTO' &&
+        value !== 'FINALIZADO' &&
+        value !== 'CANCELADO'
+      )
+        throw new ApiError(400, 'Status inválido.')
+      return value satisfies TStatusOrdemServico
+    })
+    const classificacao = this.filtroLista(data.classificacao).map(Data.id)
+    const marca = this.filtroLista(data.an_marca).map((value) => Data.text(value, 'a marca'))
+    const modelo = this.filtroLista(data.an_modelo).map((value) => Data.text(value, 'o modelo'))
     const inicio = data.inicio ? new Date(Data.text(data.inicio, 'a data inicial')) : undefined
     const fim = data.fim ? new Date(Data.text(data.fim, 'a data final')) : undefined
     if (
@@ -33,11 +42,18 @@ export class OrdemServicoValidator {
     )
       throw new ApiError(400, 'Período inválido.')
     return {
-      ...(status ? { status } : {}),
-      ...(classificacao ? { classificacao } : {}),
+      ...(status.length ? { status } : {}),
+      ...(classificacao.length ? { classificacao } : {}),
+      ...(marca.length ? { marca } : {}),
+      ...(modelo.length ? { modelo } : {}),
       ...(inicio ? { inicio } : {}),
       ...(fim ? { fim } : {}),
     }
+  }
+
+  private static filtroLista(value: unknown): unknown[] {
+    if (value === undefined || value === null || value === '') return []
+    return this.validarLista(Array.isArray(value) ? value : [value], 500)
   }
 
   static validarMovimento(body: unknown): IMovimentoOrdemServico {
@@ -74,9 +90,11 @@ export class OrdemServicoValidator {
       throw new ApiError(400, 'Datas da ordem inválidas.')
     return {
       cn_pessoa: Data.id(data.cn_pessoa),
-      ...(data.cn_responsavel === undefined
+      ...(data.cn_responsaveis === undefined
         ? {}
-        : { cn_responsavel: data.cn_responsavel === null ? null : Data.id(data.cn_responsavel) }),
+        : {
+            cn_responsaveis: [...new Set(this.validarLista(data.cn_responsaveis, 50).map(Data.id))],
+          }),
       cn_classificacao_os: Data.id(data.cn_classificacao_os),
       dt_entrada: entrada,
       dt_previsao: previsao,
@@ -88,14 +106,16 @@ export class OrdemServicoValidator {
       qt_quilometragem: Data.integer(data.qt_quilometragem, 'a quilometragem', 0, 9999999),
       an_solicitacao: Data.text(data.an_solicitacao, 'a solicitação', false),
       an_obs: Data.text(data.an_obs, 'a observação', false),
-      evidencias: this.validarLista(data.evidencias, MAX_ORDER_EVIDENCES).map((item) => this.validarEvidencia(item)),
+      evidencias: this.validarLista(data.evidencias, MAX_ORDER_EVIDENCES).map((item) =>
+        this.validarEvidencia(item),
+      ),
     }
   }
 
   static validarPlaca(value: unknown) {
-    const placa = Data.text(value, 'a placa').toUpperCase().replace(/[\s-]/g, '')
-    if (!/^[A-Z]{3}\d[A-Z0-9]\d{2}$/.test(placa)) throw new ApiError(400, 'Placa inválida.')
-    return placa
+    const placa = Data.text(value, 'a placa').toUpperCase()
+    if (!/^[A-Z]{3}-?\d[A-Z0-9]\d{2}$/.test(placa)) throw new ApiError(400, 'Placa inválida.')
+    return placa.replace('-', '')
   }
 
   private static validarLista(value: unknown, limit: number): unknown[] {
@@ -111,20 +131,23 @@ export class OrdemServicoValidator {
       typeof bl_imagem !== 'string' ||
       bl_imagem.length > 4 * Math.ceil(MAX_ORDER_EVIDENCE_BYTES / 3) ||
       !/^[A-Za-z0-9+/]+={0,2}$/.test(bl_imagem)
-    ) throw new ApiError(400, 'Anexe uma imagem de até 1 MB.')
+    )
+      throw new ApiError(400, 'Anexe uma imagem de até 1 MB.')
 
     const image = Buffer.from(bl_imagem, 'base64')
     const signatures = {
       'image/jpeg': () => image.subarray(0, 3).equals(Buffer.from([255, 216, 255])),
       'image/png': () => image.subarray(0, 8).equals(Buffer.from('89504e470d0a1a0a', 'hex')),
-      'image/webp': () => image.toString('ascii', 0, 4) === 'RIFF' && image.toString('ascii', 8, 12) === 'WEBP',
+      'image/webp': () =>
+        image.toString('ascii', 0, 4) === 'RIFF' && image.toString('ascii', 8, 12) === 'WEBP',
     }
     if (
       image.length > MAX_ORDER_EVIDENCE_BYTES ||
       image.toString('base64') !== bl_imagem ||
       (ca_mime !== 'image/jpeg' && ca_mime !== 'image/png' && ca_mime !== 'image/webp') ||
       !signatures[ca_mime]()
-    ) throw new ApiError(400, 'Anexe uma imagem JPEG, PNG ou WebP válida de até 1 MB.')
+    )
+      throw new ApiError(400, 'Anexe uma imagem JPEG, PNG ou WebP válida de até 1 MB.')
 
     return {
       an_nome: Data.text(an_nome, 'o nome da imagem').slice(0, 255),

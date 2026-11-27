@@ -2,8 +2,10 @@ export type TStatusOrdemServico = 'ABERTO' | 'EM_ANDAMENTO' | 'FINALIZADO' | 'CA
 export type TAcaoOrdemServico = 'INICIAR' | 'FINALIZAR' | 'CANCELAR'
 
 export interface IFiltroOrdemServico {
-  status?: TStatusOrdemServico
-  classificacao?: bigint
+  status?: TStatusOrdemServico[]
+  classificacao?: bigint[]
+  marca?: string[]
+  modelo?: string[]
   inicio?: Date
   fim?: Date
   billable?: boolean
@@ -21,7 +23,7 @@ export interface IManutClassificacaoOrdemServico {
 
 export interface IManutOrdemServico {
   cn_pessoa: bigint
-  cn_responsavel?: bigint | null
+  cn_responsaveis?: bigint[]
   cn_classificacao_os: bigint
   dt_entrada: Date
   dt_previsao: Date | null

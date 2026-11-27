@@ -6,6 +6,12 @@ export class ProdutoRoutes {
 
   register(router: ApiRouter) {
     router.post('/produtos/view', this.controller.view, [['CADASTROS', 2]], 200)
-    router.manut('/produtos/manut', 'cn_produto', this.controller.manutInc, this.controller.manutAlt, [['CADASTROS', 1]])
+    router.manut(
+      '/produtos/manut',
+      'cn_produto',
+      this.controller.manutInc,
+      this.controller.manutAlt,
+      [['CADASTROS', 1]],
+    )
   }
 }

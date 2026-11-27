@@ -42,7 +42,8 @@ export class PessoaService {
   }
 
   async manutAlt(id: bigint, dados: IManutPessoa) {
-    if (!(await this.pessoaRepository.detalhar(id))) throw new ApiError(404, 'Pessoa não encontrada.')
+    if (!(await this.pessoaRepository.detalhar(id)))
+      throw new ApiError(404, 'Pessoa não encontrada.')
     await this.validarDocumentoDisponivel(dados, id)
     await this.validarEstado(dados.endereco.cn_estado)
     return this.gravar(() => this.pessoaRepository.manutAlt(id, dados))
@@ -61,7 +62,7 @@ export class PessoaService {
 
   private async validarDocumentoDisponivel(dados: IManutPessoa, id?: bigint) {
     const documento = dados.ca_tipo === 'PF' ? dados.ca_cpf : dados.ca_cnpj
-    if (documento && await this.pessoaRepository.documentoEmUso(dados.ca_tipo, documento, id))
+    if (documento && (await this.pessoaRepository.documentoEmUso(dados.ca_tipo, documento, id)))
       throw new ApiError(409, documentoDuplicado)
   }
 
@@ -76,7 +77,8 @@ export class PessoaService {
   }
 
   private async validarEstado(id: bigint) {
-    if (!(await this.pessoaRepository.consultarEstadoBrasileiro(id))) throw new ApiError(400, 'UF inválida.')
+    if (!(await this.pessoaRepository.consultarEstadoBrasileiro(id)))
+      throw new ApiError(400, 'UF inválida.')
   }
 
   async view(page: number, limit: number, search: string) {

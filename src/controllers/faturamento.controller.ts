@@ -18,6 +18,9 @@ export class FaturamentoController {
 
   manutInc = (request: FastifyRequest) => {
     if (!request.firebaseUser?.uid) throw new ApiError(401, 'Usuário não autenticado.')
-    return this.service.manutInc(FaturamentoValidator.manutInc(request.body), request.firebaseUser.uid)
+    return this.service.manutInc(
+      FaturamentoValidator.manutInc(request.body),
+      request.firebaseUser.uid,
+    )
   }
 }

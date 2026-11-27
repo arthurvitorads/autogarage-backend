@@ -6,6 +6,12 @@ export class UsuarioRoutes {
 
   register(router: ApiRouter) {
     router.post('/usuarios/view', this.controller.view, [['ADMINISTRACAO', 2]], 200)
-    router.manut('/usuarios/manut', 'cn_usuario', this.controller.manutInc, this.controller.manutAlt, [['ADMINISTRACAO', 1]])
+    router.manut(
+      '/usuarios/manut',
+      'cn_usuario',
+      this.controller.manutInc,
+      this.controller.manutAlt,
+      [['ADMINISTRACAO', 1]],
+    )
   }
 }

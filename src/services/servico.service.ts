@@ -5,10 +5,7 @@ import { ServicoModel } from '../models/servico.model.js'
 
 export class ServicoService {
   constructor(
-    private readonly repository: Pick<
-      ServicoRepository,
-      'view' | 'manutInc' | 'manutAlt'
-    >,
+    private readonly repository: Pick<ServicoRepository, 'view' | 'manutInc' | 'manutAlt'>,
   ) {}
 
   async view(page: number, limit: number, search: string) {

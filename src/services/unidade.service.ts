@@ -2,7 +2,9 @@ import type { UnidadeRepository } from '../repositories/unidade.repository.js'
 import type { IManutUnidade } from '../interfaces/unidade.js'
 
 export class UnidadeService {
-  constructor(private readonly repository: Pick<UnidadeRepository, 'view' | 'manutInc' | 'manutAlt'>) {}
+  constructor(
+    private readonly repository: Pick<UnidadeRepository, 'view' | 'manutInc' | 'manutAlt'>,
+  ) {}
 
   view() {
     return this.repository.view()

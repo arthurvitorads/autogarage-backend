@@ -13,7 +13,8 @@ export class ServicoController {
     return this.service.view(page, limit, search)
   }
 
-  manutInc = (request: FastifyRequest) => this.service.manutInc(ServicoValidator.parse(request.body))
+  manutInc = (request: FastifyRequest) =>
+    this.service.manutInc(ServicoValidator.parse(request.body))
 
   manutAlt = (request: FastifyRequest) =>
     this.service.manutAlt(

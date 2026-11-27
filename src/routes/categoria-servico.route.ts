@@ -6,6 +6,12 @@ export class CategoriaServicoRoutes {
 
   register(router: ApiRouter) {
     router.post('/categoriasServico/view', this.controller.view, [['CADASTROS', 2]], 200)
-    router.manut('/categoriasServico/manut', 'cn_categoria_servico', this.controller.manutInc, this.controller.manutAlt, [['CADASTROS', 1]])
+    router.manut(
+      '/categoriasServico/manut',
+      'cn_categoria_servico',
+      this.controller.manutInc,
+      this.controller.manutAlt,
+      [['CADASTROS', 1]],
+    )
   }
 }

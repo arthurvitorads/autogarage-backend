@@ -1,5 +1,10 @@
 import { ApiError } from '../interfaces/error.js'
-import type { IApiErrorResponse, IApiResponse, IPageResponse, IPagination } from '../interfaces/api-response.js'
+import type {
+  IApiErrorResponse,
+  IApiResponse,
+  IPageResponse,
+  IPagination,
+} from '../interfaces/api-response.js'
 
 import type { FastifyReply, FastifyRequest } from 'fastify'
 
@@ -39,14 +44,17 @@ export class ApiResponse {
         code?: string
       } | null
     )?.code
-    if (databaseCode === 'P2002')
-      return ApiResponse.sendError(reply, 409, 'Registro já cadastrado')
+    if (databaseCode === 'P2002') return ApiResponse.sendError(reply, 409, 'Registro já cadastrado')
     if (databaseCode === 'P2003')
       return ApiResponse.sendError(reply, 400, 'Registro relacionado inválido ou em uso.')
     if (databaseCode === 'P2025')
       return ApiResponse.sendError(reply, 404, 'Registro não encontrado.')
     if (databaseCode === 'P2034')
-      return ApiResponse.sendError(reply, 409, 'Os dados foram alterados por outra operação. Atualize e tente novamente.')
+      return ApiResponse.sendError(
+        reply,
+        409,
+        'Os dados foram alterados por outra operação. Atualize e tente novamente.',
+      )
     const frameworkStatus = (
       error as {
         statusCode?: number

@@ -63,9 +63,9 @@ export class FaturamentoRepository {
         })
         if (!pessoa) throw new ApiError(404, 'Cliente não encontrado.')
         const itens: Prisma.FatItemVendaUncheckedCreateWithoutVendaInput[] = []
-        if (values.cn_ordem_servico) {
+        if (values.cn_ordem) {
           const ordem = await transaction.ordOrdemServico.findUnique({
-            where: { cn_ordem_servico: values.cn_ordem_servico },
+            where: { cn_ordem: values.cn_ordem },
             include: { itens: { include: { produto: true } }, venda: true },
           })
           if (!ordem || ordem.ca_status !== 'FINALIZADO' || !ordem.itens.length)
@@ -147,8 +147,8 @@ export class FaturamentoRepository {
         return transaction.fatVenda.create({
           data: {
             cn_pessoa: pessoa.cn_pessoa,
-            cn_ordem_servico: values.cn_ordem_servico,
-            ca_origem: values.cn_ordem_servico ? 'ORDEM_SERVICO' : 'DIRETA',
+            cn_ordem: values.cn_ordem,
+            ca_origem: values.cn_ordem ? 'ORDEM_SERVICO' : 'DIRETA',
             an_cliente: pessoa.an_nome ?? pessoa.an_razao_social ?? '',
             ca_documento: pessoa.ca_cpf ?? pessoa.ca_cnpj ?? '',
             an_email: pessoa.an_email ?? '',

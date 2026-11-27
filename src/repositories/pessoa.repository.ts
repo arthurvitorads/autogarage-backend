@@ -17,7 +17,7 @@ export class PessoaRepository {
         cn_pessoa: id,
         ...(orderId === undefined
           ? { bo_sts_reg: true, bo_categ_cliente: true }
-          : { ordens: { some: { cn_ordem_servico: orderId, ca_status: 'FINALIZADO' } } }),
+          : { ordens: { some: { cn_ordem: orderId, ca_status: 'FINALIZADO' } } }),
       },
       select: {
         an_nome: true,
@@ -27,7 +27,12 @@ export class PessoaRepository {
         an_email: true,
         an_telefone: true,
         endereco: {
-          select: { an_logradouro: true, an_numero: true, an_cidade: true, estado: { select: { ca_uf: true } } },
+          select: {
+            an_logradouro: true,
+            an_numero: true,
+            an_cidade: true,
+            estado: { select: { ca_uf: true } },
+          },
         },
       },
     })
@@ -49,9 +54,13 @@ export class PessoaRepository {
 
   async documentoEmUso(tipo: IManutPessoa['ca_tipo'], documento: string, id?: bigint) {
     const campo = tipo === 'PF' ? 'ca_cpf' : 'ca_cnpj'
-    const comMascara = tipo === 'PF'
-      ? documento.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4')
-      : documento.replace(/^([A-Z\d]{2})([A-Z\d]{3})([A-Z\d]{3})([A-Z\d]{4})(\d{2})$/, '$1.$2.$3/$4-$5')
+    const comMascara =
+      tipo === 'PF'
+        ? documento.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4')
+        : documento.replace(
+            /^([A-Z\d]{2})([A-Z\d]{3})([A-Z\d]{3})([A-Z\d]{4})(\d{2})$/,
+            '$1.$2.$3/$4-$5',
+          )
     return !!(await this.db.cadPessoa.findFirst({
       where: {
         [campo]: { in: [documento, comMascara], mode: 'insensitive' },
@@ -88,9 +97,8 @@ export class PessoaRepository {
   }
 
   async view(page: number, limit: number, search: string) {
-    const documento = /^[a-z\d./-]+$/i.test(search) && /\d/.test(search)
-      ? search.replace(/[./-]/g, '')
-      : search
+    const documento =
+      /^[a-z\d./-]+$/i.test(search) && /\d/.test(search) ? search.replace(/[./-]/g, '') : search
     const where: Prisma.CadPessoaWhereInput = search
       ? {
           OR: [
@@ -137,5 +145,12 @@ export class PessoaRepository {
 
 export type IPessoaRepository = Pick<
   PessoaRepository,
-  'detalhar' | 'consultarClienteVenda' | 'view' | 'manutInc' | 'manutAlt' | 'param' | 'consultarEstadoBrasileiro' | 'documentoEmUso'
+  | 'detalhar'
+  | 'consultarClienteVenda'
+  | 'view'
+  | 'manutInc'
+  | 'manutAlt'
+  | 'param'
+  | 'consultarEstadoBrasileiro'
+  | 'documentoEmUso'
 >

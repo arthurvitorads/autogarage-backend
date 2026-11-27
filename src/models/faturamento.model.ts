@@ -20,7 +20,7 @@ export class FaturamentoModel {
       ...dados,
       cn_venda: venda.cn_venda.toString(),
       cn_pessoa: venda.cn_pessoa.toString(),
-      cn_ordem_servico: venda.cn_ordem_servico?.toString() ?? null,
+      cn_ordem: venda.cn_ordem?.toString() ?? null,
       vl_total: Number(venda.vl_total),
       itens: venda.itens.map(FaturamentoModel.item),
     }

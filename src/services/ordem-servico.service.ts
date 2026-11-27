@@ -40,10 +40,11 @@ export class OrdemServicoService {
   }
 
   async paramFuncionarios() {
-    return (await this.ordemServico.paramFuncionarios()).map((person) => ({
-      cn_pessoa: person.cn_pessoa.toString(),
-      an_nome: person.an_nome ?? person.an_razao_social ?? '',
-    }))
+    return (await this.ordemServico.paramFuncionarios()).map(OrdemServicoModel.responsavel)
+  }
+
+  paramVeiculos() {
+    return this.ordemServico.paramVeiculos()
   }
 
   consultarPlaca(plate: string) {
@@ -51,12 +52,14 @@ export class OrdemServicoService {
   }
 
   async viewEvidencias(id: bigint) {
-    return (await this.ordemServico.viewEvidencias(id)).map(({ cn_evidencia, an_nome, ca_mime, bl_imagem }) => ({
-      cn_evidencia: cn_evidencia.toString(),
-      an_nome,
-      ca_mime,
-      bl_imagem: Buffer.from(bl_imagem).toString('base64'),
-    }))
+    return (await this.ordemServico.viewEvidencias(id)).map(
+      ({ cn_evidencia, an_nome, ca_mime, bl_imagem }) => ({
+        cn_evidencia: cn_evidencia.toString(),
+        an_nome,
+        ca_mime,
+        bl_imagem: Buffer.from(bl_imagem).toString('base64'),
+      }),
+    )
   }
 
   async paramOrdensFaturaveis(page: number, limit: number) {
@@ -64,8 +67,8 @@ export class OrdemServicoService {
     const { dados: orders, pagination } = response
     return ApiResponse.page({
       pagination,
-      dados: orders.map(({ cn_ordem_servico, cn_pessoa, nu_numero, an_cliente, ca_status, itens }) => ({
-        cn_ordem_servico,
+      dados: orders.map(({ cn_ordem, cn_pessoa, nu_numero, an_cliente, ca_status, itens }) => ({
+        cn_ordem,
         cn_pessoa,
         nu_numero,
         an_cliente,
@@ -97,7 +100,13 @@ export class OrdemServicoService {
     return this.ordemServico.manutRemoverItem(codigoOrdem, codigoItem)
   }
 
-  async manutTempoItem(codigoOrdem: bigint, codigoItem: bigint, acao: 'INICIAR' | 'PAUSAR' | 'FINALIZAR') {
-    return OrdemServicoModel.item(await this.ordemServico.manutTempoItem(codigoOrdem, codigoItem, acao))
+  async manutTempoItem(
+    codigoOrdem: bigint,
+    codigoItem: bigint,
+    acao: 'INICIAR' | 'PAUSAR' | 'FINALIZAR',
+  ) {
+    return OrdemServicoModel.item(
+      await this.ordemServico.manutTempoItem(codigoOrdem, codigoItem, acao),
+    )
   }
 }

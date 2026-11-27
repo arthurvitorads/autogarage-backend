@@ -95,6 +95,7 @@ model CadPessoa {
   endereco CadEndereco?
   ordens OrdOrdemServico[]
   ordensResponsavel OrdOrdemServico[] @relation("ResponsavelOrdem")
+  responsavelEm OrdResponsavelOs[]
 
   @@index([dt_inc], map: "idx_cad_pessoa_3")
   @@map("cad_pessoa")
@@ -169,7 +170,7 @@ model CadUnidade {
 }
 
 model OrdOrdemServico {
-  cn_ordem_servico BigInt   @id @default(autoincrement()) @db.BigInt
+  cn_ordem BigInt   @id @default(autoincrement()) @db.BigInt
   nu_numero        Int      @unique @default(autoincrement())
   cn_pessoa        BigInt   @db.BigInt
   cn_classificacao_os BigInt   @db.BigInt @map("cn_status_os")
@@ -195,6 +196,7 @@ model OrdOrdemServico {
   pessoa CadPessoa @relation(fields: [cn_pessoa], references: [cn_pessoa], onDelete: Restrict, onUpdate: Cascade, map: "fk_ord_ordem_servico_1")
   classificacao OrdClassificacaoOs @relation(fields: [cn_classificacao_os], references: [cn_classificacao_os], onDelete: Restrict, onUpdate: Cascade, map: "fk_ord_ordem_servico_2")
   responsavel CadPessoa? @relation("ResponsavelOrdem", fields: [cn_responsavel], references: [cn_pessoa], onDelete: Restrict, onUpdate: Cascade)
+  responsaveis OrdResponsavelOs[]
   evidencias OrdEvidenciaOs[]
   itens OrdItemOs[]
   venda FatVenda?
@@ -205,22 +207,68 @@ model OrdOrdemServico {
   @@map("ord_ordem_servico")
 }
 
+model OrdResponsavelOs {
+  cn_ordem BigInt @db.BigInt
+  cn_pessoa        BigInt @db.BigInt
+  ordem  OrdOrdemServico @relation(fields: [cn_ordem], references: [cn_ordem], onDelete: Restrict, onUpdate: Cascade)
+  pessoa CadPessoa @relation(fields: [cn_pessoa], references: [cn_pessoa], onDelete: Restrict, onUpdate: Cascade)
+
+  @@id([cn_ordem, cn_pessoa])
+  @@index([cn_pessoa], map: "idx_ord_responsavel_os_pessoa")
+  @@map("ord_responsavel_os")
+}
+
+model CadMarcaVeiculo {
+  cn_marca_veiculo Int    @id @default(autoincrement())
+  an_descr         String
+  ca_chave         String @unique
+  modelos          CadModeloVeiculo[]
+
+  @@map("cad_marca_veiculo")
+}
+
+model CadModeloVeiculo {
+  cn_modelo_veiculo Int    @id @default(autoincrement())
+  cn_marca_veiculo  Int
+  an_descr          String
+  ca_chave          String
+  marca             CadMarcaVeiculo @relation(fields: [cn_marca_veiculo], references: [cn_marca_veiculo], onDelete: Restrict, onUpdate: Cascade)
+  veiculos          CadVeiculo[]
+
+  @@unique([cn_marca_veiculo, ca_chave])
+  @@map("cad_modelo_veiculo")
+}
+
+model CadVeiculo {
+  cn_veiculo        BigInt   @id @default(autoincrement()) @db.BigInt
+  an_placa          String   @unique
+  cn_modelo_veiculo Int
+  nu_ano            Int?
+  an_cor            String   @default("")
+  dt_inc            DateTime @default(now()) @db.Timestamptz(6)
+  dt_alt            DateTime @default(now()) @db.Timestamptz(6)
+  modelo            CadModeloVeiculo @relation(fields: [cn_modelo_veiculo], references: [cn_modelo_veiculo], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([cn_modelo_veiculo], map: "idx_cad_veiculos_modelo")
+  @@map("cad_veiculos")
+}
+
 model OrdEvidenciaOs {
   cn_evidencia     BigInt   @id @default(autoincrement()) @db.BigInt
-  cn_ordem_servico BigInt   @db.BigInt
+  cn_ordem BigInt   @db.BigInt
   an_nome          String
   ca_mime          String
   bl_imagem        Bytes
   dt_inc           DateTime @default(now()) @db.Timestamptz(6)
-  ordem OrdOrdemServico @relation(fields: [cn_ordem_servico], references: [cn_ordem_servico], onDelete: Restrict, onUpdate: Cascade)
+  ordem OrdOrdemServico @relation(fields: [cn_ordem], references: [cn_ordem], onDelete: Restrict, onUpdate: Cascade)
 
-  @@index([cn_ordem_servico], map: "idx_ord_evidencia_os_ordem")
+  @@index([cn_ordem], map: "idx_ord_evidencia_os_ordem")
   @@map("ord_evidencia_os")
 }
 
 model OrdItemOs {
   cn_item          BigInt   @id @default(autoincrement()) @db.BigInt
-  cn_ordem_servico BigInt   @db.BigInt
+  cn_ordem BigInt   @db.BigInt
   ca_tipo          String
   cn_produto       Int?
   cn_servico       Int?
@@ -236,10 +284,10 @@ model OrdItemOs {
   dt_inicio_tempo DateTime? @db.Timestamptz(6)
   tempos OrdTempoItemOs[]
   itemVenda FatItemVenda?
-  ordem OrdOrdemServico @relation(fields: [cn_ordem_servico], references: [cn_ordem_servico], onDelete: Restrict, onUpdate: Cascade, map: "fk_ord_item_os_1")
+  ordem OrdOrdemServico @relation(fields: [cn_ordem], references: [cn_ordem], onDelete: Restrict, onUpdate: Cascade, map: "fk_ord_item_os_1")
   produto CadProduto? @relation(fields: [cn_produto], references: [cn_produto], onDelete: Restrict, onUpdate: Cascade, map: "fk_ord_item_os_2")
   servico CadServico? @relation(fields: [cn_servico], references: [cn_servico], onDelete: Restrict, onUpdate: Cascade, map: "fk_ord_item_os_3")
-  @@index([cn_ordem_servico], map: "idx_ord_item_os_1")
+  @@index([cn_ordem], map: "idx_ord_item_os_1")
   @@index([cn_produto], map: "idx_ord_item_os_2")
   @@index([cn_servico], map: "idx_ord_item_os_3")
   @@index([ca_status_servico, qt_tempo_segundos], map: "idx_ord_item_os_4")
@@ -289,7 +337,7 @@ model FatVenda {
   cn_venda         BigInt   @id @default(autoincrement()) @db.BigInt
   nu_numero        Int      @unique @default(autoincrement())
   cn_pessoa        BigInt   @db.BigInt
-  cn_ordem_servico BigInt?  @unique @db.BigInt
+  cn_ordem BigInt?  @unique @db.BigInt
   ca_chave_requisicao String @unique
   ca_hash_requisicao String
   ca_origem        String
@@ -305,7 +353,7 @@ model FatVenda {
   dt_inc           DateTime @default(now()) @db.Timestamptz(6)
   dt_alt           DateTime @default(now()) @db.Timestamptz(6)
   pessoa CadPessoa @relation(fields: [cn_pessoa], references: [cn_pessoa], onDelete: Restrict, onUpdate: Cascade, map: "fk_fat_venda_1")
-  ordem OrdOrdemServico? @relation(fields: [cn_ordem_servico], references: [cn_ordem_servico], onDelete: Restrict, onUpdate: Cascade, map: "fk_fat_venda_2")
+  ordem OrdOrdemServico? @relation(fields: [cn_ordem], references: [cn_ordem], onDelete: Restrict, onUpdate: Cascade, map: "fk_fat_venda_2")
   itens FatItemVenda[]
   @@index([cn_pessoa], map: "idx_fat_venda_1")
   @@index([dt_venda], map: "idx_fat_venda_2")

@@ -30,10 +30,9 @@ export class DocumentoService {
       throw new ApiError(400, 'O serviço de consulta não aceitou este CNPJ.')
     if (response.status === 429) throw new ApiError(429, 'Limite de consultas de CNPJ excedido.')
     if (!response.ok) {
-      throw Object.assign(
-        new ApiError(502, 'O serviço de consulta de CNPJ está indisponível.'),
-        { providerStatus: response.status },
-      )
+      throw Object.assign(new ApiError(502, 'O serviço de consulta de CNPJ está indisponível.'), {
+        providerStatus: response.status,
+      })
     }
 
     const data = await response.json().catch(() => null)
@@ -59,7 +58,8 @@ export class DocumentoService {
     if (logradouro && streetType) {
       const street = logradouro.toUpperCase()
       const type = streetType.toUpperCase()
-      if (street !== type && !street.startsWith(type + ' ')) logradouro = streetType + ' ' + logradouro
+      if (street !== type && !street.startsWith(type + ' '))
+        logradouro = streetType + ' ' + logradouro
     }
 
     return {

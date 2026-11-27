@@ -16,8 +16,8 @@ export class PessoaController {
     this.service.detalhar(DataValidator.id(DataValidator.object(request.body).cn_pessoa))
 
   consultarCliente = (request: FastifyRequest) => {
-    const { cn_pessoa, cn_ordem_servico } = DataValidator.object(request.body)
-    const orderId = cn_ordem_servico === undefined ? undefined : DataValidator.id(cn_ordem_servico)
+    const { cn_pessoa, cn_ordem } = DataValidator.object(request.body)
+    const orderId = cn_ordem === undefined ? undefined : DataValidator.id(cn_ordem)
     return this.service.consultarCliente(DataValidator.id(cn_pessoa), orderId)
   }
 
@@ -31,7 +31,9 @@ export class PessoaController {
     if ((ca_cpf === undefined) === (ca_cnpj === undefined))
       throw new ApiError(400, 'Informe um CPF ou CNPJ.')
     const tipo = ca_cpf === undefined ? 'PJ' : 'PF'
-    const documento = DataValidator.text(ca_cpf ?? ca_cnpj, 'o documento').replace(/[./-]/g, '').toUpperCase()
+    const documento = DataValidator.text(ca_cpf ?? ca_cnpj, 'o documento')
+      .replace(/[./-]/g, '')
+      .toUpperCase()
     if (!PessoaValidator.document(documento, tipo)) throw new ApiError(400, 'Documento inválido.')
     return this.service.consultarDocumento(
       tipo,

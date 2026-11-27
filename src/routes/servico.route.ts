@@ -6,6 +6,12 @@ export class ServicoRoutes {
 
   register(router: ApiRouter) {
     router.post('/servicos/view', this.controller.view, [['CADASTROS', 2]], 200)
-    router.manut('/servicos/manut', 'cn_servico', this.controller.manutInc, this.controller.manutAlt, [['CADASTROS', 1]])
+    router.manut(
+      '/servicos/manut',
+      'cn_servico',
+      this.controller.manutInc,
+      this.controller.manutAlt,
+      [['CADASTROS', 1]],
+    )
   }
 }

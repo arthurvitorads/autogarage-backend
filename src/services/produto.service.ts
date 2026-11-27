@@ -5,10 +5,7 @@ import { ProdutoModel } from '../models/produto.model.js'
 
 export class ProdutoService {
   constructor(
-    private readonly repository: Pick<
-      ProdutoRepository,
-      'view' | 'manutInc' | 'manutAlt'
-    >,
+    private readonly repository: Pick<ProdutoRepository, 'view' | 'manutInc' | 'manutAlt'>,
   ) {}
 
   async view(page: number, limit: number, search: string) {

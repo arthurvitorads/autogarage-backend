@@ -22,15 +22,23 @@ export class OrdemServicoController {
 
   view = (request: FastifyRequest) => {
     const { page, limit, search } = PaginationValidator.parse(request.body)
-    return this.service.view(page, limit, search, OrdemServicoValidator.validarFiltros(request.body))
+    return this.service.view(
+      page,
+      limit,
+      search,
+      OrdemServicoValidator.validarFiltros(request.body),
+    )
   }
 
   detalhar = (request: FastifyRequest) => this.service.detalhar(this.id(request))
 
   paramFuncionarios = () => this.service.paramFuncionarios()
+  paramVeiculos = () => this.service.paramVeiculos()
 
   consultarPlaca = (request: FastifyRequest) =>
-    this.service.consultarPlaca(OrdemServicoValidator.validarPlaca(DataValidator.object(request.body).an_placa))
+    this.service.consultarPlaca(
+      OrdemServicoValidator.validarPlaca(DataValidator.object(request.body).an_placa),
+    )
 
   viewEvidencias = (request: FastifyRequest) => this.service.viewEvidencias(this.id(request))
 
@@ -40,7 +48,10 @@ export class OrdemServicoController {
   }
 
   manutMovimentar = (request: FastifyRequest) =>
-    this.service.manutMovimentar(this.id(request), OrdemServicoValidator.validarMovimento(request.body))
+    this.service.manutMovimentar(
+      this.id(request),
+      OrdemServicoValidator.validarMovimento(request.body),
+    )
 
   manutInc = (request: FastifyRequest) =>
     this.service.manutOrdemServico(null, OrdemServicoValidator.manut(request.body))
@@ -52,16 +63,24 @@ export class OrdemServicoController {
     this.service.manutItem(this.id(request), null, OrdemServicoValidator.manutItem(request.body))
 
   manutAltItem = (request: FastifyRequest) =>
-    this.service.manutItem(this.id(request), this.codigoItem(request), OrdemServicoValidator.manutItem(request.body))
+    this.service.manutItem(
+      this.id(request),
+      this.codigoItem(request),
+      OrdemServicoValidator.manutItem(request.body),
+    )
 
   manutRemoverItem = (request: FastifyRequest) =>
     this.service.manutRemoverItem(this.id(request), this.codigoItem(request))
 
   manutTempoItem = (request: FastifyRequest) =>
-    this.service.manutTempoItem(this.id(request), this.codigoItem(request), OrdemServicoValidator.validarAcaoTempo(request.body))
+    this.service.manutTempoItem(
+      this.id(request),
+      this.codigoItem(request),
+      OrdemServicoValidator.validarAcaoTempo(request.body),
+    )
 
   private id(request: FastifyRequest) {
-    return DataValidator.id(DataValidator.object(request.body).cn_ordem_servico)
+    return DataValidator.id(DataValidator.object(request.body).cn_ordem)
   }
 
   private codigoItem(request: FastifyRequest) {

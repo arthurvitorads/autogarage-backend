@@ -6,6 +6,12 @@ export class UnidadeRoutes {
 
   register(router: ApiRouter) {
     router.post('/unidades/view', this.controller.view, [['CADASTROS', 2]], 200)
-    router.manut('/unidades/manut', 'cn_unidade', this.controller.manutInc, this.controller.manutAlt, [['CADASTROS', 1]])
+    router.manut(
+      '/unidades/manut',
+      'cn_unidade',
+      this.controller.manutInc,
+      this.controller.manutAlt,
+      [['CADASTROS', 1]],
+    )
   }
 }

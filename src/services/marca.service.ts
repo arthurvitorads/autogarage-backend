@@ -2,7 +2,9 @@ import type { MarcaRepository } from '../repositories/marca.repository.js'
 import type { IManutMarca } from '../interfaces/marca.js'
 
 export class MarcaService {
-  constructor(private readonly repository: Pick<MarcaRepository, 'view' | 'manutInc' | 'manutAlt'>) {}
+  constructor(
+    private readonly repository: Pick<MarcaRepository, 'view' | 'manutInc' | 'manutAlt'>,
+  ) {}
 
   view() {
     return this.repository.view()
