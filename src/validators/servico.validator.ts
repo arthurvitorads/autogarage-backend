@@ -9,7 +9,6 @@ export class ServicoValidator {
       an_nome: Data.text(data.an_nome, 'o nome'),
       an_categoria: Data.text(data.an_categoria, 'a categoria', false),
       vl_preco: Data.decimal(data.vl_preco, 'o preço'),
-      nu_tempo_estimado: Data.integer(data.nu_tempo_estimado, 'o tempo estimado', 1, 999999),
       an_obs: Data.text(data.an_obs, 'a observação', false),
       bo_sts_reg: Data.boolean(data.bo_sts_reg),
     }
