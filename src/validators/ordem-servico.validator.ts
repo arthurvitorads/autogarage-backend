@@ -60,7 +60,6 @@ export class OrdemServicoValidator {
     return {
       an_descr: Data.text(data.an_descr, 'a descrição'),
       ca_cor: cor,
-      bo_padrao: Data.boolean(data.bo_padrao),
     }
   }
 

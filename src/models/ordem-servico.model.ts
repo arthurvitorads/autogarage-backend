@@ -6,7 +6,6 @@ export class OrdemServicoModel {
       cn_classificacao_os: status.cn_classificacao_os.toString(),
       an_descr: status.an_descr,
       ca_cor: status.ca_cor,
-      bo_padrao: status.bo_padrao,
     }
   }
 

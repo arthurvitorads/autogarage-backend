@@ -50,7 +50,6 @@ model OrdClassificacaoOs {
   cn_classificacao_os BigInt   @id @default(autoincrement()) @db.BigInt @map("cn_status_os")
   an_descr        String
   ca_cor          String   @default("#64748b")
-  bo_padrao       Boolean  @default(false)
   bo_sts_reg      Boolean  @default(true)
   dt_inc          DateTime @default(now()) @db.Timestamptz(6)
   dt_alt          DateTime @default(now()) @db.Timestamptz(6)

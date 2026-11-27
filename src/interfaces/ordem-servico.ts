@@ -17,7 +17,6 @@ export interface IMovimentoOrdemServico {
 export interface IManutClassificacaoOrdemServico {
   an_descr: string
   ca_cor: string
-  bo_padrao: boolean
 }
 
 export interface IManutOrdemServico {

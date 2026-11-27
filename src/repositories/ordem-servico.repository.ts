@@ -20,22 +20,12 @@ export class OrdemServicoRepository {
   }
 
   manutClassificacao(id: bigint | null, dados: IManutClassificacaoOrdemServico) {
-    return this.db.$transaction(
-      async (transaction) => {
-        if (dados.bo_padrao)
-          await transaction.ordClassificacaoOs.updateMany({
-            where: { bo_padrao: true },
-            data: { bo_padrao: false, dt_alt: new Date() },
-          })
-        return id === null
-          ? transaction.ordClassificacaoOs.create({ data: dados })
-          : transaction.ordClassificacaoOs.update({
-              where: { cn_classificacao_os: id },
-              data: { ...dados, dt_alt: new Date() },
-            })
-      },
-      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
-    )
+    return id === null
+      ? this.db.ordClassificacaoOs.create({ data: dados })
+      : this.db.ordClassificacaoOs.update({
+          where: { cn_classificacao_os: id },
+          data: { ...dados, dt_alt: new Date() },
+        })
   }
 
   async view(page: number, limit: number, search: string, filters: IFiltroOrdemServico = {}) {

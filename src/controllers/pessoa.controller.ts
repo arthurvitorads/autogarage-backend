@@ -1,7 +1,6 @@
 import type { FastifyRequest } from 'fastify'
 
 import type { PessoaService } from '../services/pessoa.service.js'
-import { DocumentoService } from '../services/documento.service.js'
 import { CepService } from '../services/cep.service.js'
 import { ApiError } from '../interfaces/error.js'
 
@@ -27,11 +26,28 @@ export class PessoaController {
 
   manutInc = (request: FastifyRequest) => this.service.manutInc(PessoaValidator.parse(request.body))
 
+  consultarDocumento = (request: FastifyRequest) => {
+    const { ca_cpf, ca_cnpj, cn_pessoa } = DataValidator.object(request.body)
+    if ((ca_cpf === undefined) === (ca_cnpj === undefined))
+      throw new ApiError(400, 'Informe um CPF ou CNPJ.')
+    const tipo = ca_cpf === undefined ? 'PJ' : 'PF'
+    const documento = DataValidator.text(ca_cpf ?? ca_cnpj, 'o documento').replace(/[./-]/g, '').toUpperCase()
+    if (!PessoaValidator.document(documento, tipo)) throw new ApiError(400, 'Documento inválido.')
+    return this.service.consultarDocumento(
+      tipo,
+      documento,
+      cn_pessoa === undefined ? undefined : DataValidator.id(cn_pessoa),
+    )
+  }
+
   consultarCnpj = (request: FastifyRequest) => {
-    const { ca_cnpj, cnpj } = DataValidator.object(request.body)
-    const document = DataValidator.text(ca_cnpj ?? cnpj, 'o CNPJ').replace(/[.\/-]/g, '').toUpperCase()
-    if (!PessoaValidator.document(document, 'PJ')) throw new ApiError(400, 'CNPJ inválido.')
-    return DocumentoService.consultarCnpj(document)
+    const { ca_cnpj, cn_pessoa } = DataValidator.object(request.body)
+    const cnpj = DataValidator.text(ca_cnpj, 'o CNPJ').replace(/[./-]/g, '').toUpperCase()
+    if (!PessoaValidator.document(cnpj, 'PJ')) throw new ApiError(400, 'CNPJ inválido.')
+    return this.service.consultarCnpj(
+      cnpj,
+      cn_pessoa === undefined ? undefined : DataValidator.id(cn_pessoa),
+    )
   }
 
   consultarCep = (request: FastifyRequest) => {

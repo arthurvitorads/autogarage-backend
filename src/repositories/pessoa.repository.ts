@@ -47,6 +47,20 @@ export class PessoaRepository {
     })
   }
 
+  async documentoEmUso(tipo: IManutPessoa['ca_tipo'], documento: string, id?: bigint) {
+    const campo = tipo === 'PF' ? 'ca_cpf' : 'ca_cnpj'
+    const comMascara = tipo === 'PF'
+      ? documento.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4')
+      : documento.replace(/^([A-Z\d]{2})([A-Z\d]{3})([A-Z\d]{3})([A-Z\d]{4})(\d{2})$/, '$1.$2.$3/$4-$5')
+    return !!(await this.db.cadPessoa.findFirst({
+      where: {
+        [campo]: { in: [documento, comMascara], mode: 'insensitive' },
+        ...(id === undefined ? {} : { cn_pessoa: { not: id } }),
+      },
+      select: { cn_pessoa: true },
+    }))
+  }
+
   manutInc(values: IManutPessoa) {
     const { endereco, ...data } = values
     return this.db.cadPessoa.create({
@@ -74,6 +88,9 @@ export class PessoaRepository {
   }
 
   async view(page: number, limit: number, search: string) {
+    const documento = /^[a-z\d./-]+$/i.test(search) && /\d/.test(search)
+      ? search.replace(/[./-]/g, '')
+      : search
     const where: Prisma.CadPessoaWhereInput = search
       ? {
           OR: [
@@ -88,6 +105,12 @@ export class PessoaRepository {
             {
               ca_cnpj: { contains: search, mode: 'insensitive' },
             },
+            ...(documento !== search && documento
+              ? [
+                  { ca_cpf: { contains: documento, mode: 'insensitive' as const } },
+                  { ca_cnpj: { contains: documento, mode: 'insensitive' as const } },
+                ]
+              : []),
             {
               an_email: { contains: search, mode: 'insensitive' },
             },
@@ -114,5 +137,5 @@ export class PessoaRepository {
 
 export type IPessoaRepository = Pick<
   PessoaRepository,
-  'detalhar' | 'consultarClienteVenda' | 'view' | 'manutInc' | 'manutAlt' | 'param' | 'consultarEstadoBrasileiro'
+  'detalhar' | 'consultarClienteVenda' | 'view' | 'manutInc' | 'manutAlt' | 'param' | 'consultarEstadoBrasileiro' | 'documentoEmUso'
 >

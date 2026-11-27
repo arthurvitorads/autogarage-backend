@@ -40,7 +40,7 @@ export class ApiResponse {
       } | null
     )?.code
     if (databaseCode === 'P2002')
-      return ApiResponse.sendError(reply, 409, 'Registro duplicado. Confira documento, referência ou descrição.')
+      return ApiResponse.sendError(reply, 409, 'Registro já cadastrado')
     if (databaseCode === 'P2003')
       return ApiResponse.sendError(reply, 400, 'Registro relacionado inválido ou em uso.')
     if (databaseCode === 'P2025')
