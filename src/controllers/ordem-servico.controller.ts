@@ -35,12 +35,49 @@ export class OrdemServicoController {
   paramFuncionarios = () => this.service.paramFuncionarios()
   paramVeiculos = () => this.service.paramVeiculos()
 
+  manutIncMarcaVeiculo = (request: FastifyRequest) => this.manutMarcaVeiculo(request, false)
+  manutAltMarcaVeiculo = (request: FastifyRequest) => this.manutMarcaVeiculo(request, true)
+  manutIncModeloVeiculo = (request: FastifyRequest) => this.manutModeloVeiculo(request, false)
+  manutAltModeloVeiculo = (request: FastifyRequest) => this.manutModeloVeiculo(request, true)
+
+  private manutMarcaVeiculo(request: FastifyRequest, alterar: boolean) {
+    const dados = DataValidator.object(request.body)
+    return this.service.manutMarcaVeiculo(
+      alterar ? DataValidator.code(dados.cn_marca_veiculo) : null,
+      DataValidator.text(dados.an_descr, 'a descrição'),
+    )
+  }
+
+  private manutModeloVeiculo(request: FastifyRequest, alterar: boolean) {
+    const dados = DataValidator.object(request.body)
+    return this.service.manutModeloVeiculo(
+      alterar ? DataValidator.code(dados.cn_modelo_veiculo) : null,
+      DataValidator.code(dados.cn_marca_veiculo),
+      DataValidator.text(dados.an_descr, 'a descrição'),
+    )
+  }
+
   consultarPlaca = (request: FastifyRequest) =>
     this.service.consultarPlaca(
       OrdemServicoValidator.validarPlaca(DataValidator.object(request.body).an_placa),
     )
 
   viewEvidencias = (request: FastifyRequest) => this.service.viewEvidencias(this.id(request))
+
+  manutIncEvidencia = (request: FastifyRequest) =>
+    this.service.manutIncEvidencia(
+      this.id(request),
+      OrdemServicoValidator.validarEvidencia(request.body),
+    )
+
+  manutAltDescricaoEvidencia = (request: FastifyRequest) => {
+    const dados = DataValidator.object(request.body)
+    return this.service.manutAltDescricaoEvidencia(
+      this.id(request),
+      DataValidator.id(dados.cn_evidencia),
+      OrdemServicoValidator.descricaoEvidencia(dados.an_descr),
+    )
+  }
 
   paramOrdensFaturaveis = (request: FastifyRequest) => {
     const { page, limit } = PaginationValidator.parse(request.body)

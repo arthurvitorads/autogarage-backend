@@ -106,6 +106,15 @@ export class OrdemServicoValidator {
       qt_quilometragem: Data.integer(data.qt_quilometragem, 'a quilometragem', 0, 9999999),
       an_solicitacao: Data.text(data.an_solicitacao, 'a solicitação', false),
       an_obs: Data.text(data.an_obs, 'a observação', false),
+      descricoes_evidencias: this.validarLista(data.descricoes_evidencias, MAX_ORDER_EVIDENCES).map(
+        (item) => {
+          const { cn_evidencia, an_descr } = Data.object(item)
+          return {
+            cn_evidencia: Data.id(cn_evidencia),
+            an_descr: this.descricaoEvidencia(an_descr),
+          }
+        },
+      ),
       evidencias: this.validarLista(data.evidencias, MAX_ORDER_EVIDENCES).map((item) =>
         this.validarEvidencia(item),
       ),
@@ -125,8 +134,15 @@ export class OrdemServicoValidator {
     return value
   }
 
-  private static validarEvidencia(value: unknown) {
-    const { an_nome, ca_mime, bl_imagem } = Data.object(value)
+  static descricaoEvidencia(value: unknown) {
+    const descricao = Data.text(value, 'a descrição da imagem', false)
+    if (descricao.length > 500)
+      throw new ApiError(400, 'A descrição da imagem deve ter até 500 caracteres.')
+    return descricao
+  }
+
+  static validarEvidencia(value: unknown) {
+    const { an_nome, an_descr, ca_mime, bl_imagem } = Data.object(value)
     if (
       typeof bl_imagem !== 'string' ||
       bl_imagem.length > 4 * Math.ceil(MAX_ORDER_EVIDENCE_BYTES / 3) ||
@@ -151,6 +167,7 @@ export class OrdemServicoValidator {
 
     return {
       an_nome: Data.text(an_nome, 'o nome da imagem').slice(0, 255),
+      an_descr: this.descricaoEvidencia(an_descr),
       ca_mime,
       bl_imagem: Uint8Array.from(image),
     }

@@ -1,6 +1,28 @@
 import type { CadPessoa, OrdItemOs, OrdOrdemServico, OrdClassificacaoOs } from '@prisma/client'
 
 export class OrdemServicoModel {
+  static evidencia({
+    cn_evidencia,
+    an_nome,
+    an_descr,
+    ca_mime,
+    bl_imagem,
+  }: {
+    cn_evidencia: bigint
+    an_nome: string
+    an_descr: string
+    ca_mime: string
+    bl_imagem: Uint8Array
+  }) {
+    return {
+      cn_evidencia: cn_evidencia.toString(),
+      an_nome,
+      an_descr,
+      ca_mime,
+      bl_imagem: Buffer.from(bl_imagem).toString('base64'),
+    }
+  }
+
   static responsavel(
     pessoa: Pick<CadPessoa, 'cn_pessoa' | 'an_nome' | 'an_razao_social' | 'an_cargo'>,
   ) {

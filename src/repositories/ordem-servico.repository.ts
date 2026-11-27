@@ -1,6 +1,7 @@
 import { Prisma, type PrismaClient } from '@prisma/client'
 import type {
   IManutOrdemServico,
+  IManutEvidenciaOrdemServico,
   IManutClassificacaoOrdemServico,
   IManutItemOrdemServico,
   IFiltroOrdemServico,
@@ -126,32 +127,85 @@ export class OrdemServicoRepository {
     const marcas = await this.db.cadMarcaVeiculo.findMany({
       orderBy: { an_descr: 'asc' },
       select: {
+        cn_marca_veiculo: true,
         an_descr: true,
-        modelos: { select: { an_descr: true }, orderBy: { an_descr: 'asc' } },
+        modelos: {
+          select: { cn_modelo_veiculo: true, an_descr: true },
+          orderBy: { an_descr: 'asc' },
+        },
       },
     })
     return marcas.map((marca) => ({
+      cn_marca_veiculo: marca.cn_marca_veiculo,
       an_marca: marca.an_descr,
-      modelos: marca.modelos.map((modelo) => modelo.an_descr),
+      modelos: marca.modelos,
     }))
   }
 
+  manutMarcaVeiculo(id: number | null, an_descr: string) {
+    const data = { an_descr, ca_chave: an_descr.toLowerCase() }
+    if (id === null) return this.db.cadMarcaVeiculo.create({ data })
+
+    return this.db.$transaction(
+      async (transaction) => {
+        const where = { cn_marca_veiculo: id }
+        const anterior = await transaction.cadMarcaVeiculo.findUniqueOrThrow({ where })
+        const marca = await transaction.cadMarcaVeiculo.update({ where, data })
+        if (anterior.an_descr !== an_descr) {
+          await transaction.ordOrdemServico.updateMany({
+            where: { an_marca: { equals: anterior.an_descr, mode: 'insensitive' } },
+            data: { an_marca: an_descr },
+          })
+        }
+        return marca
+      },
+      { isolationLevel: 'Serializable' },
+    )
+  }
+
+  manutModeloVeiculo(id: number | null, cn_marca_veiculo: number, an_descr: string) {
+    const data = { cn_marca_veiculo, an_descr, ca_chave: an_descr.toLowerCase() }
+    return this.db.$transaction(
+      async (transaction) => {
+        const marca = await transaction.cadMarcaVeiculo.findUnique({ where: { cn_marca_veiculo } })
+        if (!marca) throw new ApiError(400, 'Selecione uma marca cadastrada.')
+        if (id === null) return transaction.cadModeloVeiculo.create({ data })
+
+        const where = { cn_modelo_veiculo: id }
+        const anterior = await transaction.cadModeloVeiculo.findUniqueOrThrow({
+          where,
+          include: { marca: true },
+        })
+        const modelo = await transaction.cadModeloVeiculo.update({ where, data })
+        if (anterior.an_descr !== an_descr || anterior.cn_marca_veiculo !== cn_marca_veiculo) {
+          await transaction.ordOrdemServico.updateMany({
+            where: {
+              an_marca: { equals: anterior.marca.an_descr, mode: 'insensitive' },
+              an_modelo: { equals: anterior.an_descr, mode: 'insensitive' },
+            },
+            data: { an_marca: marca.an_descr, an_modelo: an_descr },
+          })
+        }
+        return modelo
+      },
+      { isolationLevel: 'Serializable' },
+    )
+  }
+
   private async gravarVeiculo(transaction: Prisma.TransactionClient, dados: IManutOrdemServico) {
-    const ca_marca = dados.an_marca.toLowerCase()
-    const marca = await transaction.cadMarcaVeiculo.upsert({
-      where: { ca_chave: ca_marca },
-      create: { an_descr: dados.an_marca, ca_chave: ca_marca },
-      update: {},
+    const marca = await transaction.cadMarcaVeiculo.findUnique({
+      where: { ca_chave: dados.an_marca.toLowerCase() },
     })
-    const chaveModelo = {
-      cn_marca_veiculo: marca.cn_marca_veiculo,
-      ca_chave: dados.an_modelo.toLowerCase(),
-    }
-    const modelo = await transaction.cadModeloVeiculo.upsert({
-      where: { cn_marca_veiculo_ca_chave: chaveModelo },
-      create: { ...chaveModelo, an_descr: dados.an_modelo },
-      update: {},
+    if (!marca) throw new ApiError(400, 'Selecione uma marca cadastrada.')
+    const modelo = await transaction.cadModeloVeiculo.findUnique({
+      where: {
+        cn_marca_veiculo_ca_chave: {
+          cn_marca_veiculo: marca.cn_marca_veiculo,
+          ca_chave: dados.an_modelo.toLowerCase(),
+        },
+      },
     })
+    if (!modelo) throw new ApiError(400, 'Selecione um modelo cadastrado para a marca.')
     const atributos = {
       cn_modelo_veiculo: modelo.cn_modelo_veiculo,
       nu_ano: dados.nu_ano,
@@ -182,6 +236,34 @@ export class OrdemServicoRepository {
         itens: { orderBy: { cn_item: 'asc' } },
       },
     })
+  }
+
+  manutIncEvidencia(cn_ordem: bigint, dados: IManutEvidenciaOrdemServico) {
+    return this.db.$transaction(
+      async (transaction) => {
+        await this.buscarOrdemEditavel(transaction, cn_ordem)
+        const count = await transaction.ordEvidenciaOs.count({ where: { cn_ordem } })
+        if (count >= MAX_ORDER_EVIDENCES)
+          throw new ApiError(400, 'Uma ordem pode ter até cinco imagens.')
+        return transaction.ordEvidenciaOs.create({ data: { ...dados, cn_ordem } })
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    )
+  }
+
+  manutAltDescricaoEvidencia(cn_ordem: bigint, cn_evidencia: bigint, an_descr: string) {
+    return this.db.$transaction(
+      async (transaction) => {
+        await this.buscarOrdemEditavel(transaction, cn_ordem)
+        const { count } = await transaction.ordEvidenciaOs.updateMany({
+          where: { cn_ordem, cn_evidencia },
+          data: { an_descr },
+        })
+        if (!count) throw new ApiError(404, 'Imagem não encontrada nesta ordem de serviço.')
+        return { cn_evidencia: cn_evidencia.toString(), an_descr }
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    )
   }
 
   private async buscarOrdemEditavel(transaction: Prisma.TransactionClient, id: bigint) {
@@ -241,7 +323,7 @@ export class OrdemServicoRepository {
   manutOrdemServico(id: bigint | null, dados: IManutOrdemServico) {
     return this.db.$transaction(
       async (transaction) => {
-        const { cn_responsaveis, evidencias = [], ...data } = dados
+        const { cn_responsaveis, evidencias = [], descricoes_evidencias = [], ...data } = dados
         const existente = id === null ? null : await this.buscarOrdemEditavel(transaction, id)
         const pessoa = await transaction.cadPessoa.findUnique({
           where: { cn_pessoa: data.cn_pessoa },
@@ -302,6 +384,14 @@ export class OrdemServicoRepository {
             await transaction.ordResponsavelOs.createMany({
               data: cn_responsaveis.map((cn_pessoa) => ({ ...where, cn_pessoa })),
             })
+        }
+
+        for (const { cn_evidencia, an_descr } of descricoes_evidencias) {
+          const { count } = await transaction.ordEvidenciaOs.updateMany({
+            where: { cn_ordem: order.cn_ordem, cn_evidencia },
+            data: { an_descr },
+          })
+          if (!count) throw new ApiError(400, 'A imagem não pertence a esta ordem de serviço.')
         }
 
         if (evidencias.length) {
@@ -493,7 +583,11 @@ export type IOrdemServicoRepository = Pick<
   | 'paramFuncionarios'
   | 'consultarPlaca'
   | 'paramVeiculos'
+  | 'manutMarcaVeiculo'
+  | 'manutModeloVeiculo'
   | 'viewEvidencias'
+  | 'manutIncEvidencia'
+  | 'manutAltDescricaoEvidencia'
   | 'manutOrdemServico'
   | 'manutMovimentar'
   | 'manutItem'

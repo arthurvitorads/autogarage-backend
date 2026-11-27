@@ -59,14 +59,39 @@ export class OrdemServicoRoutes {
     router.post(
       '/ordensServico/veiculos/param',
       this.controller.paramVeiculos,
-      [['ORDEM_SERVICO', 2]],
+      [
+        ['ORDEM_SERVICO', 2],
+        ['CADASTROS', 2],
+      ],
       200,
+    )
+    router.manut(
+      '/marcasVeiculos/manut',
+      'cn_marca_veiculo',
+      this.controller.manutIncMarcaVeiculo,
+      this.controller.manutAltMarcaVeiculo,
+      [['CADASTROS', 1]],
+    )
+    router.manut(
+      '/modelosVeiculos/manut',
+      'cn_modelo_veiculo',
+      this.controller.manutIncModeloVeiculo,
+      this.controller.manutAltModeloVeiculo,
+      [['CADASTROS', 1]],
     )
     router.post(
       '/ordensServico/consultar-placa',
       this.controller.consultarPlaca,
       [['ORDEM_SERVICO', 1]],
       200,
+    )
+    router.manut(
+      '/ordensServico/evidencias/manut',
+      'cn_evidencia',
+      this.controller.manutIncEvidencia,
+      this.controller.manutAltDescricaoEvidencia,
+      [['ORDEM_SERVICO', 1]],
+      4 * Math.ceil(MAX_ORDER_EVIDENCE_BYTES / 3) + 65536,
     )
     router.post(
       '/ordensServico/evidencias/view',

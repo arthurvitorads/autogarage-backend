@@ -257,6 +257,7 @@ model OrdEvidenciaOs {
   cn_evidencia     BigInt   @id @default(autoincrement()) @db.BigInt
   cn_ordem BigInt   @db.BigInt
   an_nome          String
+  an_descr         String   @default("")
   ca_mime          String
   bl_imagem        Bytes
   dt_inc           DateTime @default(now()) @db.Timestamptz(6)

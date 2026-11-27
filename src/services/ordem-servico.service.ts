@@ -4,6 +4,7 @@ import { ApiError } from '../interfaces/error.js'
 import type { IOrdemServicoRepository } from '../repositories/ordem-servico.repository.js'
 import type {
   IManutOrdemServico,
+  IManutEvidenciaOrdemServico,
   IManutClassificacaoOrdemServico,
   IManutItemOrdemServico,
   IFiltroOrdemServico,
@@ -43,6 +44,14 @@ export class OrdemServicoService {
     return (await this.ordemServico.paramFuncionarios()).map(OrdemServicoModel.responsavel)
   }
 
+  manutMarcaVeiculo(id: number | null, an_descr: string) {
+    return this.ordemServico.manutMarcaVeiculo(id, an_descr)
+  }
+
+  manutModeloVeiculo(id: number | null, cn_marca_veiculo: number, an_descr: string) {
+    return this.ordemServico.manutModeloVeiculo(id, cn_marca_veiculo, an_descr)
+  }
+
   paramVeiculos() {
     return this.ordemServico.paramVeiculos()
   }
@@ -52,14 +61,15 @@ export class OrdemServicoService {
   }
 
   async viewEvidencias(id: bigint) {
-    return (await this.ordemServico.viewEvidencias(id)).map(
-      ({ cn_evidencia, an_nome, ca_mime, bl_imagem }) => ({
-        cn_evidencia: cn_evidencia.toString(),
-        an_nome,
-        ca_mime,
-        bl_imagem: Buffer.from(bl_imagem).toString('base64'),
-      }),
-    )
+    return (await this.ordemServico.viewEvidencias(id)).map(OrdemServicoModel.evidencia)
+  }
+
+  async manutIncEvidencia(id: bigint, dados: IManutEvidenciaOrdemServico) {
+    return OrdemServicoModel.evidencia(await this.ordemServico.manutIncEvidencia(id, dados))
+  }
+
+  manutAltDescricaoEvidencia(id: bigint, cn_evidencia: bigint, an_descr: string) {
+    return this.ordemServico.manutAltDescricaoEvidencia(id, cn_evidencia, an_descr)
   }
 
   async paramOrdensFaturaveis(page: number, limit: number) {

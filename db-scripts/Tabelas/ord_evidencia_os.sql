@@ -3,6 +3,7 @@ create table if not exists ord_evidencia_os (
   cn_ordem bigint not null references ord_ordem_servico (cn_ordem)
     on delete restrict on update cascade,
   an_nome          text not null,
+  an_descr         text not null default '',
   ca_mime          text not null check (ca_mime in ('image/jpeg', 'image/png', 'image/webp')),
   bl_imagem        bytea not null check (octet_length(bl_imagem) between 1 and 1048576),
   dt_inc           timestamptz not null default now()
@@ -14,6 +15,7 @@ create index if not exists idx_ord_evidencia_os_ordem
 comment on column ord_evidencia_os.cn_evidencia is 'Identificador da evidência da ordem.';
 comment on column ord_evidencia_os.cn_ordem is 'Identificador da ordem de serviço.';
 comment on column ord_evidencia_os.an_nome is 'Nome original do arquivo da evidência.';
+comment on column ord_evidencia_os.an_descr is 'Descrição opcional da imagem de evidência.';
 comment on column ord_evidencia_os.ca_mime is 'Tipo MIME da imagem de evidência.';
 comment on column ord_evidencia_os.bl_imagem is 'Conteúdo binário da imagem de evidência.';
 comment on column ord_evidencia_os.dt_inc is 'Data e hora de inclusão.';

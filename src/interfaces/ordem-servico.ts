@@ -36,10 +36,12 @@ export interface IManutOrdemServico {
   an_solicitacao: string
   an_obs: string
   evidencias?: IManutEvidenciaOrdemServico[]
+  descricoes_evidencias?: { cn_evidencia: bigint; an_descr: string }[]
 }
 
 export interface IManutEvidenciaOrdemServico {
   an_nome: string
+  an_descr: string
   ca_mime: string
   bl_imagem: Uint8Array<ArrayBuffer>
 }
